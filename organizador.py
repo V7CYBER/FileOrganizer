@@ -9,8 +9,14 @@ from core.movimientos import mover_archivos
 def seleccionar_carpeta():
 
     ruta = input("¿Qué carpeta quieres organizar? ")
+    while True:
 
-    carpeta = Path(ruta).expanduser()
+        simulacion = input("¿Mover los archivos? (S/N): ").strip().upper()
+
+        if simulacion in ("S", "N"):
+            break
+        print("✗ Respuesta no válida. Escribe únicamente S o N.\n")
+        carpeta = Path(ruta).expanduser()
 
     if carpeta.exists() and carpeta.is_dir():
 
@@ -30,24 +36,26 @@ def seleccionar_carpeta():
 
         clasificacion = clasificar_archivos(carpeta)
 
-        if clasificacion:
+        if not clasificacion:
 
-            for nombre, categoria in clasificacion:
-                print(f"  {nombre:<35} → {categoria}")
+            print("  No se encontraron archivos para organizar.")
+        return
+
+    for nombre, categoria in clasificacion:
+        print(f"  {nombre:<35} → {categoria}")
+
+        if simulacion == "S":
+
+            print("\nMoviendo archivos...\n")
+
+            mover_archivos(clasificacion, carpeta)
 
         else:
 
-            print("  No se encontraron archivos para organizar.")
+            print("\n*** MODO SIMULACIÓN ***")
+            print("No se ha movido ningún archivo.")
 
-        print("\nPreparando estructura de carpetas...\n")
-
-        crear_carpetas(carpeta)
-
-        print("\nMoviendo archivos...\n")
-
-        mover_archivos(clasificacion, carpeta)
-
-        print("----------------------------------------")
+            print("----------------------------------------")
 
     else:
 
@@ -57,7 +65,7 @@ def seleccionar_carpeta():
 def main():
 
     print("=" * 40)
-    print("        FILE ORGANIZER v1.0")
+    print("        FILE ORGANIZER v1.1")
     print("=" * 40)
 
     seleccionar_carpeta()
