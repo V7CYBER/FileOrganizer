@@ -45,7 +45,7 @@ def seleccionar_carpeta():
 def main():
 
     print("=" * 40)
-    print("        FILE ORGANIZER v0.6")
+    print("        FILE ORGANIZER v0.7")
     print("=" * 40)
 
     seleccionar_carpeta()
