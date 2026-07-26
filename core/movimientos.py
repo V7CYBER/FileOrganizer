@@ -20,3 +20,18 @@ def mover_fotos(ruta):
                 shutil.move(str(archivo), str(nuevo_destino))
 
                 print(f"📷 {archivo.name} → Fotos/")
+
+def mover_archivos(clasificacion, ruta):
+
+    carpeta = Path(ruta)
+
+    for nombre, categoria in clasificacion:
+
+        origen = carpeta / nombre
+        destino = carpeta / categoria
+
+        if origen.exists():
+
+            shutil.move(str(origen), str(destino / nombre))
+
+            print(f"📦 {nombre} → {categoria}/")

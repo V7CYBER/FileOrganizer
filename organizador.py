@@ -4,7 +4,7 @@ from pathlib import Path
 from core.analizador import analizar_carpeta
 from core.clasificador import clasificar_archivos
 from core.creador import crear_carpetas
-from core.movimientos import mover_fotos
+from core.movimientos import mover_archivos
 
 
 def seleccionar_carpeta():
@@ -38,9 +38,9 @@ def seleccionar_carpeta():
 
         crear_carpetas(carpeta)
 
-        print("\nMoviendo imágenes...\n")
+        print("\nMoviendo archivos...\n")
 
-        mover_fotos(carpeta)
+        mover_archivos(clasificacion, carpeta)
 
         print("----------------------------------------")
 
@@ -51,7 +51,7 @@ def seleccionar_carpeta():
 def main():
 
     print("=" * 40)
-    print("        FILE ORGANIZER v0.8")
+    print("        FILE ORGANIZER v0.9")
     print("=" * 40)
 
     seleccionar_carpeta()
