@@ -3,6 +3,7 @@
 from pathlib import Path
 from core.analizador import analizar_carpeta
 from core.clasificador import clasificar_archivos
+from core.creador import crear_carpetas
 
 
 def seleccionar_carpeta():
@@ -31,6 +32,9 @@ def seleccionar_carpeta():
 
         for nombre, categoria in clasificacion:
             print(f"  {nombre:<35} → {categoria}")
+
+        print("\nPreparando estructura de carpetas...\n")
+        crear_carpetas(carpeta)    
 
         print("----------------------------------------")
 
