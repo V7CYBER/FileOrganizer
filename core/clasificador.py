@@ -1,27 +1,5 @@
 from pathlib import Path
-
-CATEGORIAS = {
-    ".jpg": "Fotos",
-    ".jpeg": "Fotos",
-    ".png": "Fotos",
-    ".gif": "Fotos",
-
-    ".pdf": "Documentos",
-    ".doc": "Documentos",
-    ".docx": "Documentos",
-    ".txt": "Documentos",
-
-    ".mp3": "Música",
-    ".wav": "Música",
-
-    ".mp4": "Vídeos",
-    ".avi": "Vídeos",
-    ".mkv": "Vídeos",
-
-    ".zip": "Comprimidos",
-    ".rar": "Comprimidos",
-    ".7z": "Comprimidos"
-}
+from config import CATEGORIAS
 
 
 def clasificar_archivos(ruta):
@@ -36,7 +14,14 @@ def clasificar_archivos(ruta):
 
             extension = archivo.suffix.lower()
 
-            categoria = CATEGORIAS.get(extension, "Otros")
+            categoria = "Otros"
+
+            for nombre_categoria, extensiones in CATEGORIAS.items():
+
+                if extension in extensiones:
+
+                    categoria = nombre_categoria
+                    break
 
             resultado.append((archivo.name, categoria))
 

@@ -6,7 +6,6 @@ from core.clasificador import clasificar_archivos
 from core.creador import crear_carpetas
 from core.movimientos import mover_archivos
 
-
 def seleccionar_carpeta():
 
     ruta = input("¿Qué carpeta quieres organizar? ")
@@ -31,8 +30,14 @@ def seleccionar_carpeta():
 
         clasificacion = clasificar_archivos(carpeta)
 
-        for nombre, categoria in clasificacion:
-            print(f"  {nombre:<35} → {categoria}")
+        if clasificacion:
+
+            for nombre, categoria in clasificacion:
+                print(f"  {nombre:<35} → {categoria}")
+
+        else:
+
+            print("  No se encontraron archivos para organizar.")
 
         print("\nPreparando estructura de carpetas...\n")
 
@@ -45,13 +50,14 @@ def seleccionar_carpeta():
         print("----------------------------------------")
 
     else:
+
         print("\n✗ La carpeta no existe.")
 
 
 def main():
 
     print("=" * 40)
-    print("        FILE ORGANIZER v0.9")
+    print("        FILE ORGANIZER v1.0")
     print("=" * 40)
 
     seleccionar_carpeta()
