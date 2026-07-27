@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+from core.logger import guardar_log
 
 EXTENSIONES_FOTOS = [".jpg", ".jpeg", ".png", ".gif"]
 
@@ -33,5 +34,6 @@ def mover_archivos(clasificacion, ruta):
         if origen.exists():
 
             shutil.move(str(origen), str(destino / nombre))
+            guardar_log(nombre, categoria)
 
             print(f"📦 {nombre} → {categoria}/")
