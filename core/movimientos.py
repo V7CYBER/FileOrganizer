@@ -72,7 +72,7 @@ def mover_archivos(clasificacion, ruta):
 
             shutil.move(str(origen), str(destino))
 
-            guardar_log(nombre, categoria)
+            guardar_log(nombre, str(carpeta), categoria)
 
             estadisticas[categoria] = estadisticas.get(categoria, 0) + 1
 

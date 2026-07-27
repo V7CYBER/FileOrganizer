@@ -2,7 +2,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-def guardar_log(nombre_archivo, categoria):
+def guardar_log(nombre_archivo, ruta_original, categoria):
 
     carpeta_logs = Path("logs")
 
@@ -14,4 +14,6 @@ def guardar_log(nombre_archivo, categoria):
 
     with open(archivo_log, "a", encoding="utf-8") as log:
 
-        log.write(f"[{fecha}] {nombre_archivo} -> {categoria}\n")
+        log.write(
+            f"[{fecha}] {nombre_archivo} | {ruta_original} | {categoria}\n"
+)
