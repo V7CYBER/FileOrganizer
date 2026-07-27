@@ -3,8 +3,8 @@
 from pathlib import Path
 from core.analizador import analizar_carpeta
 from core.clasificador import clasificar_archivos
-from core.creador import crear_carpetas
 from core.movimientos import mover_archivos
+
 
 def seleccionar_carpeta():
 
@@ -51,7 +51,20 @@ def seleccionar_carpeta():
 
             print("\nMoviendo archivos...\n")
 
-            mover_archivos(clasificacion, carpeta)
+            estadisticas = mover_archivos(clasificacion, carpeta)
+
+            print("\n========================================")
+            print("           RESUMEN FINAL")
+            print("========================================")
+
+            total = sum(estadisticas.values())
+
+            print(f"\nArchivos movidos........ {total}\n")
+
+            for categoria, cantidad in estadisticas.items():
+                print(f"{categoria:<22} {cantidad}")
+
+            print("\nProceso finalizado correctamente.")
 
         else:
 
@@ -68,7 +81,7 @@ def seleccionar_carpeta():
 def main():
 
     print("=" * 40)
-    print("        FILE ORGANIZER v1.3")
+    print("        FILE ORGANIZER v1.4")
     print("=" * 40)
 
     seleccionar_carpeta()
