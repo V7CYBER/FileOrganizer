@@ -17,6 +17,11 @@ def deshacer_ultima_organizacion():
 
         lineas = log.readlines()
 
+    if not lineas:
+
+        print("No hay movimientos para deshacer.")
+        return
+
     print(f"Se han encontrado {len(lineas)} movimientos.\n")
 
     restaurados = 0
@@ -27,18 +32,12 @@ def deshacer_ultima_organizacion():
 
         partes = linea.split(" | ")
 
-
         registro = partes[0]
         ruta_original = partes[1]
         categoria = partes[2]
 
-    if not lineas:
-
-        print("No hay movimientos para deshacer.")
-        return
-
-
         nombre_archivo = registro.split("] ")[1]
+
         origen = Path(ruta_original) / categoria / nombre_archivo
         destino = Path(ruta_original) / nombre_archivo
 
@@ -54,16 +53,14 @@ def deshacer_ultima_organizacion():
 
             print(f"✗ No encontrado: {origen}")
 
+    print("\n========================================")
+    print("      RESUMEN DE RESTAURACIÓN")
+    print("========================================")
+    print(f"Archivos restaurados..... {restaurados}")
 
-            print("\n========================================")
-            print("      RESUMEN DE RESTAURACIÓN")
-            print("========================================")
-            print(f"Archivos restaurados..... {restaurados}")
+    if restaurados > 0:
 
-            if restaurados > 0:
+        with open(archivo_log, "w", encoding="utf-8"):
+            pass
 
-
-                with open(archivo_log, "w", encoding="utf-8"):
-                    pass
-
-                print("✓ Historial borrado.")
+        print("✓ Historial borrado.")

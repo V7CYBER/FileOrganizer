@@ -4,6 +4,7 @@ from pathlib import Path
 from core.analizador import analizar_carpeta
 from core.clasificador import clasificar_archivos
 from core.movimientos import mover_archivos
+from core.deshacer import deshacer_ultima_organizacion
 
 
 def seleccionar_carpeta():
@@ -80,12 +81,34 @@ def seleccionar_carpeta():
 
 def main():
 
-    print("=" * 40)
-    print("        FILE ORGANIZER v1.5")
-    print("=" * 40)
+    while True:
 
-    seleccionar_carpeta()
+        print("=" * 40)
+        print("        FILE ORGANIZER v1.6")
+        print("=" * 40)
+        print("1) Organizar carpeta")
+        print("2) Deshacer última organización")
+        print("3) Salir")
+
+        opcion = input("\nSeleccione una opción: ").strip()
+
+        if opcion == "1":
+
+            seleccionar_carpeta()
+
+        elif opcion == "2":
+
+            deshacer_ultima_organizacion()
+
+        elif opcion == "3":
+
+            print("\n¡Hasta la próxima!")
+            break
+
+        else:
+
+            print("\n✗ Opción no válida.\n")
 
 
 if __name__ == "__main__":
-    main()
+    main()        
