@@ -73,7 +73,8 @@ def mover_archivos(clasificacion, ruta):
 
             try:
 
-                shutil.move(str(origen), "/ruta/que/no/existe/" + nombre)
+                destino.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(origen), str(destino))
                 guardar_log(nombre, str(carpeta), categoria)
 
 
