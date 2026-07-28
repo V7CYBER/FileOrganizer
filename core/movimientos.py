@@ -80,7 +80,22 @@ def mover_archivos(clasificacion, ruta):
                 actual += 1
                 mostrar_progreso(actual, total)
                 print(f"📦 {nombre} → {categoria}/")
-            except Exception as e:
-                print(f"❌ Error al mover {nombre}: {e}")    
+            except PermissionError:
+
+                print(f"\n🔒 Permiso denegado: {nombre}")
+
+            except FileNotFoundError:
+
+                print(f"\n📂 Archivo no encontrado: {nombre}")
+
+            except OSError as error:
+
+                print(f"\n⚠ Error del sistema con {nombre}")
+                print(error)
+
+            except Exception as error:
+
+                print(f"\n❌ Error inesperado con {nombre}")
+                print(error)    
 
     return estadisticas
