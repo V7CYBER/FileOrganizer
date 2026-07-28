@@ -13,14 +13,7 @@ def seleccionar_carpeta():
     ruta = input("¿Qué carpeta quieres organizar? ")
     carpeta = Path(ruta).expanduser()
 
-    while True:
-
-        simulacion = input("¿Mover los archivos? (S/N): ").strip().upper()
-
-        if simulacion in ("S", "N"):
-            break
-
-        print("✗ Respuesta no válida. Escribe únicamente S o N.\n")
+    
 
     if carpeta.exists() and carpeta.is_dir():
 
@@ -49,7 +42,16 @@ def seleccionar_carpeta():
             for nombre, categoria in clasificacion:
                 print(f"  {nombre:<35} → {categoria}")
 
-        if simulacion == "S":
+        if clasificacion:
+            confirmacion = input(
+            "\n¿Desea continuar con la organización? (S/N): "
+            ).strip().upper()
+
+            if confirmacion != "S":
+
+                print("\nOperación cancelada por el usuario.")
+                print("----------------------------------------")
+                return
 
             print("\nMoviendo archivos...\n")
 
@@ -68,12 +70,8 @@ def seleccionar_carpeta():
 
             print("\nProceso finalizado correctamente.")
 
-        else:
-
-            print("\n*** MODO SIMULACIÓN ***")
-            print("No se ha movido ningún archivo.")
-
-        print("----------------------------------------")
+        
+            print("----------------------------------------")
 
     else:
 
