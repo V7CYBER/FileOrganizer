@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 from core.logger import guardar_log
+from core.mensajes import mostrar_error
 
 
 def mostrar_progreso(actual, total):
@@ -72,7 +73,7 @@ def mover_archivos(clasificacion, ruta):
 
             try:
 
-                shutil.move(str(origen), str(destino))
+                shutil.move(str(origen), "/ruta/que/no/existe/" + nombre)
                 guardar_log(nombre, str(carpeta), categoria)
 
 
@@ -80,22 +81,34 @@ def mover_archivos(clasificacion, ruta):
                 actual += 1
                 mostrar_progreso(actual, total)
                 print(f"📦 {nombre} → {categoria}/")
+
             except PermissionError:
 
-                print(f"\n🔒 Permiso denegado: {nombre}")
+                mostrar_error(
+                    nombre,
+                    "Permiso denegado."
+                )
 
             except FileNotFoundError:
 
-                print(f"\n📂 Archivo no encontrado: {nombre}")
+                mostrar_error(
+                    nombre,
+                    "Archivo o carpeta no encontrada."
+                )
 
             except OSError as error:
 
-                print(f"\n⚠ Error del sistema con {nombre}")
-                print(error)
+                mostrar_error(
+                    nombre,
+                    f"Error del sistema: {error}"
+                )
 
             except Exception as error:
 
-                print(f"\n❌ Error inesperado con {nombre}")
-                print(error)    
+                mostrar_error(
+                    nombre,
+                    f"Error inesperado: {error}"
+                )
+      
 
     return estadisticas

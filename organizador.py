@@ -5,6 +5,7 @@ from core.analizador import analizar_carpeta
 from core.clasificador import clasificar_archivos
 from core.movimientos import mover_archivos
 from core.deshacer import deshacer_ultima_organizacion
+from core.mensajes import mostrar_error, mostrar_error_ruta
 
 
 def seleccionar_carpeta():
@@ -76,7 +77,7 @@ def seleccionar_carpeta():
 
     else:
 
-        print("\n✗ La carpeta no existe.")
+        mostrar_error_ruta(carpeta)
 
 
 def main():
