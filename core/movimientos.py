@@ -70,15 +70,17 @@ def mover_archivos(clasificacion, ruta):
 
         if origen.exists():
 
-            shutil.move(str(origen), str(destino))
+            try:
 
-            guardar_log(nombre, str(carpeta), categoria)
+                shutil.move(str(origen), str(destino))
+                guardar_log(nombre, str(carpeta), categoria)
 
-            estadisticas[categoria] = estadisticas.get(categoria, 0) + 1
 
-            actual += 1
-            mostrar_progreso(actual, total)
-
-            print(f"📦 {nombre} → {categoria}/")
+                estadisticas[categoria] = estadisticas.get(categoria, 0) + 1
+                actual += 1
+                mostrar_progreso(actual, total)
+                print(f"📦 {nombre} → {categoria}/")
+            except Exception as e:
+                print(f"❌ Error al mover {nombre}: {e}")    
 
     return estadisticas

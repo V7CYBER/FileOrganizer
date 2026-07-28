@@ -84,7 +84,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v1.6")
+        print("        FILE ORGANIZER v1.7")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Deshacer última organización")
