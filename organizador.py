@@ -61,17 +61,17 @@ def seleccionar_carpeta():
             print("           RESUMEN FINAL")
             print("========================================")
 
-            total = sum(estadisticas.values())
+            print(f"\nArchivos analizados..... {estadisticas['analizados']}")
+            print(f"Archivos movidos........ {estadisticas['movidos']}")
+            print(f"Archivos omitidos....... {estadisticas['omitidos']}")
 
-            print(f"\nArchivos movidos........ {total}\n")
+            print("\n----------------------------------------\n")
 
-            for categoria, cantidad in estadisticas.items():
-                print(f"{categoria:<22} {cantidad}")
+            for categoria, cantidad in estadisticas["categorias"].items():
+                print(f"{categoria:<24} {cantidad}")
 
-            print("\nProceso finalizado correctamente.")
-
-        
-            print("----------------------------------------")
+            print("\n----------------------------------------")
+            print("Proceso finalizado correctamente.")
 
     else:
 
@@ -83,7 +83,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v1.8")
+        print("        FILE ORGANIZER v1.9")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Deshacer última organización")
@@ -111,3 +111,4 @@ def main():
 
 if __name__ == "__main__":
     main()        
+

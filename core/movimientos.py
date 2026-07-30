@@ -57,7 +57,12 @@ def mover_fotos(ruta):
 def mover_archivos(clasificacion, ruta):
 
     carpeta = Path(ruta)
-    estadisticas = {}
+    estadisticas = {
+    "analizados": len(clasificacion),
+    "movidos": 0,
+    "omitidos": 0,
+    "categorias": {}
+}
 
     total = len(clasificacion)
     actual = 0
@@ -78,12 +83,17 @@ def mover_archivos(clasificacion, ruta):
                 guardar_log(nombre, str(carpeta), categoria)
 
 
-                estadisticas[categoria] = estadisticas.get(categoria, 0) + 1
+                estadisticas["movidos"] += 1
+                estadisticas["categorias"][categoria] = (
+                    estadisticas["categorias"].get(categoria, 0) + 1
+                )  
                 actual += 1
                 mostrar_progreso(actual, total)
                 print(f"📦 {nombre} → {categoria}/")
 
             except PermissionError:
+
+                estadisticas["omitidos"] += 1
 
                 mostrar_error(
                     nombre,
@@ -92,6 +102,8 @@ def mover_archivos(clasificacion, ruta):
 
             except FileNotFoundError:
 
+                estadisticas["omitidos"] += 1
+
                 mostrar_error(
                     nombre,
                     "Archivo o carpeta no encontrada."
@@ -99,12 +111,16 @@ def mover_archivos(clasificacion, ruta):
 
             except OSError as error:
 
+                estadisticas["omitidos"] += 1
+
                 mostrar_error(
                     nombre,
                     f"Error del sistema: {error}"
                 )
 
             except Exception as error:
+
+                estadisticas["omitidos"] += 1
 
                 mostrar_error(
                     nombre,
