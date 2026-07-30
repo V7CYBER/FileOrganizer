@@ -34,5 +34,17 @@
         ".7z",
         ".tar",
         ".gz"
+    ],
+
+    "Sin_clasificar": [],
+
+
+    "ignorar": [
+        "Documentos",
+        "Fotos",
+        "Vídeos",
+        "Música",
+        "Comprimidos",
+        "Sin_clasificar"
     ]
 }

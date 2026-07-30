@@ -18,6 +18,7 @@ def clasificar_archivos(ruta):
     carpeta = Path(ruta)
 
     categorias = cargar_configuracion()
+    categorias.pop("ignorar", None)
 
     resultado = []
 
