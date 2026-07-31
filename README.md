@@ -78,3 +78,43 @@ FileOrganizer/
 ## Estado del proyecto
 
 En desarrollo.
+# 📂 FileOrganizer
+
+FileOrganizer es una aplicación desarrollada en Python para organizar archivos automáticamente según su extensión.
+
+## Funciones actuales
+
+- ✅ Análisis de carpetas
+- ✅ Clasificación por categorías mediante `config.json`
+- ✅ Creación automática de carpetas
+- ✅ Organización de archivos
+- ✅ Barra de progreso
+- ✅ Resumen final
+- ✅ Historial de movimientos
+- ✅ Deshacer última organización
+- ✅ Menú interactivo
+- ✅ Manejo de errores
+- ✅ Carpetas configurables mediante JSON
+- ✅ Modo simulación (v2.1)
+
+---
+
+# Versiones
+
+## v2.1
+
+### Novedades
+
+- Nuevo **Modo Simulación**.
+- Vista previa de la organización sin mover archivos.
+- Resumen específico para la simulación.
+- Refactorización de `seleccionar_carpeta()`.
+- Código reorganizado para facilitar futuras mejoras.
+
+---
+
+## Próximas mejoras (v2.2)
+
+- Utilizar la sección `"ignorar"` de `config.json`.
+- Evitar analizar las carpetas creadas por el propio programa.
+- Mejorar la velocidad en ejecuciones repetidas.

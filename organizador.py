@@ -7,87 +7,105 @@ from core.movimientos import mover_archivos
 from core.deshacer import deshacer_ultima_organizacion
 from core.mensajes import mostrar_error, mostrar_error_ruta
 
+def seleccionar_carpeta(simulacion=False):
 
-def seleccionar_carpeta():
+    ruta = input("¿Qué carpeta quieres organizar? ").strip()
 
-    ruta = input("¿Qué carpeta quieres organizar? ")
-    carpeta = Path(ruta).expanduser()
+    carpeta = Path(ruta)
 
-    
+    if not carpeta.exists() or not carpeta.is_dir():
+        mostrar_error_ruta(carpeta)
+        return
 
-    if carpeta.exists() and carpeta.is_dir():
+    datos = analizar_carpeta(carpeta)
 
-        datos = analizar_carpeta(carpeta)
+    print("\n----------------------------------------")
+    print(f"Ruta............... {datos['ruta']}")
+    print(f"Archivos........... {datos['archivos']}")
+    print(f"Subcarpetas........ {datos['carpetas']}")
 
-        print("\n----------------------------------------")
-        print(f"Ruta............... {datos['ruta']}")
-        print(f"Archivos........... {datos['archivos']}")
-        print(f"Subcarpetas........ {datos['carpetas']}")
+    print("\nTipos de archivo encontrados:")
 
-        print("\nTipos de archivo encontrados:")
-
+    if datos["extensiones"]:
         for extension, cantidad in sorted(datos["extensiones"].items()):
             print(f"  {extension:<15} {cantidad}")
-
-        print("\nClasificación prevista:")
-
-        clasificacion = clasificar_archivos(carpeta)
-
-        if not clasificacion:
-
-            print("  No se encontraron archivos para organizar.")
-
-        else:
-
-            for nombre, categoria in clasificacion:
-                print(f"  {nombre:<35} → {categoria}")
-
-        if clasificacion:
-            confirmacion = input(
-            "\n¿Desea continuar con la organización? (S/N): "
-            ).strip().upper()
-
-            if confirmacion != "S":
-
-                print("\nOperación cancelada por el usuario.")
-                print("----------------------------------------")
-                return
-
-            print("\nMoviendo archivos...\n")
-
-            estadisticas = mover_archivos(clasificacion, carpeta)
-
-            print("\n========================================")
-            print("           RESUMEN FINAL")
-            print("========================================")
-
-            print(f"\nArchivos analizados..... {estadisticas['analizados']}")
-            print(f"Archivos movidos........ {estadisticas['movidos']}")
-            print(f"Archivos omitidos....... {estadisticas['omitidos']}")
-
-            print("\n----------------------------------------\n")
-
-            for categoria, cantidad in estadisticas["categorias"].items():
-                print(f"{categoria:<24} {cantidad}")
-
-            print("\n----------------------------------------")
-            print("Proceso finalizado correctamente.")
-
     else:
+        print("  No se encontraron archivos.")
 
-        mostrar_error_ruta(carpeta)
+    clasificacion = clasificar_archivos(carpeta)
 
+    print("\n\nClasificación prevista:")
 
+    if clasificacion:
+        for nombre, categoria in clasificacion:
+            print(f"  {nombre:<35} → {categoria}")
+    else:
+        print("  No se encontraron archivos para organizar.")
+        return
+
+    confirmacion = input(
+        "\n¿Desea continuar con la organización? (S/N): "
+    ).strip().upper()
+
+    if confirmacion != "S":
+        print("\nOperación cancelada por el usuario.")
+        print("----------------------------------------")
+        return
+
+    if simulacion:
+
+        resumen = {}
+
+        for _, categoria in clasificacion:
+            resumen[categoria] = resumen.get(categoria, 0) + 1
+
+        print("\n========================================")
+        print("      RESUMEN SIMULACIÓN")
+        print("========================================")
+
+        print(f"\nArchivos analizados..... {len(clasificacion)}")
+
+        print("\nSe moverían:\n")
+
+        for categoria, cantidad in resumen.items():
+            print(f"{categoria:<24} {cantidad}")
+
+        print("\n----------------------------------------")
+        print("No se ha movido ningún archivo.")
+        print("----------------------------------------")
+
+        return
+
+    print("\nMoviendo archivos...\n")
+
+    estadisticas = mover_archivos(clasificacion, carpeta)
+
+    print("\n========================================")
+    print("           RESUMEN FINAL")
+    print("========================================")
+
+    print(f"\nArchivos analizados..... {estadisticas['analizados']}")
+    print(f"Archivos movidos........ {estadisticas['movidos']}")
+    print(f"Archivos omitidos....... {estadisticas['omitidos']}")
+
+    print("\n----------------------------------------\n")
+
+    for categoria, cantidad in estadisticas["categorias"].items():
+        print(f"{categoria:<24} {cantidad}")
+
+    print("\n----------------------------------------")
+    print("Proceso finalizado correctamente.")
 def main():
 
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.0")
+        print("        FILE ORGANIZER v2.1")
         print("=" * 40)
         print("1) Organizar carpeta")
-        print("2) Deshacer última organización")
-        print("3) Salir")
+        print("2) Modo simulación")
+        print("3) Deshacer última organización")
+        print("4) Salir")
 
         opcion = input("\nSeleccione una opción: ").strip()
 
@@ -95,13 +113,21 @@ def main():
            seleccionar_carpeta()
 
         elif opcion == "2":
-             deshacer_ultima_organizacion()
+                
+            seleccionar_carpeta(simulacion=True)
+
 
         elif opcion == "3":
+             
+             deshacer_ultima_organizacion()
+
+        elif opcion == "4":
+
             print("\n¡Hasta la próxima!")
             break
 
         else:
+
             print("\n✗ Opción no válida.\n")
 
 
