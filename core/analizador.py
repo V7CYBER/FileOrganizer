@@ -26,6 +26,7 @@ def analizar_carpeta(ruta):
 
              if elemento.name in ignorar:
                 continue
+
              carpetas += 1
 
     return {
