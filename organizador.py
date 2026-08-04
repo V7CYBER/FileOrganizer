@@ -6,6 +6,7 @@ from core.clasificador import clasificar_archivos
 from core.movimientos import mover_archivos
 from core.deshacer import deshacer_ultima_organizacion
 from core.mensajes import mostrar_error, mostrar_error_ruta
+from core.estadisticas import guardar_estadisticas
 
 def seleccionar_carpeta(simulacion=False):
 
@@ -80,6 +81,8 @@ def seleccionar_carpeta(simulacion=False):
 
     estadisticas = mover_archivos(clasificacion, carpeta)
 
+    guardar_estadisticas(carpeta, estadisticas)
+
     print("\n========================================")
     print("           RESUMEN FINAL")
     print("========================================")
@@ -100,7 +103,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.2")
+        print("        FILE ORGANIZER v2.3")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")

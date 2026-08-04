@@ -1,0 +1,13 @@
+[
+    {
+        "fecha": "2026-08-04 14:08:01",
+        "ruta": "/home/wakan/Pruebas",
+        "analizados": 2,
+        "movidos": 2,
+        "omitidos": 0,
+        "categorias": {
+            "Documentos": 1,
+            "Fotos": 1
+        }
+    }
+]

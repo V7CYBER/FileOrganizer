@@ -28,20 +28,22 @@ FileOrganizer/
 ├── core/
 │   ├── analizador.py
 │   ├── clasificador.py
-│   ├── movimientos.py
+│   ├── creador.py
 │   ├── deshacer.py
+│   ├── estadisticas.py
 │   ├── logger.py
 │   ├── mensajes.py
-│   └── creador.py
-├── logs/
+│   └── movimientos.py
 ├── docs/
+├── logs/
+├── stats/
+│   └── estadisticas.json
 ├── test/
 ├── utils/
 ├── config.json
 ├── organizador.py
 └── README.md
 ```
-
 ---
 
 ## Versiones
@@ -118,3 +120,36 @@ FileOrganizer es una aplicación desarrollada en Python para organizar archivos 
 - Utilizar la sección `"ignorar"` de `config.json`.
 - Evitar analizar las carpetas creadas por el propio programa.
 - Mejorar la velocidad en ejecuciones repetidas.
+- 📊 Registro automático de estadísticas de cada organización.
+## Características
+
+- Organización automática de archivos por categorías.
+- Configuración mediante `config.json`.
+- Creación automática de carpetas.
+- Historial de movimientos.
+- Deshacer última organización.
+- Modo simulación.
+- Sistema de carpetas ignoradas.
+- 📊 Registro automático de estadísticas de cada organización.
+## Estadísticas
+
+A partir de la versión **v2.3**, FileOrganizer guarda automáticamente un historial de cada organización realizada.
+
+Las estadísticas se almacenan en:
+
+```text
+stats/estadisticas.json
+```
+
+Cada registro contiene:
+
+- Fecha y hora.
+- Carpeta organizada.
+- Archivos analizados.
+- Archivos movidos.
+- Archivos omitidos.
+- Número de archivos por categoría.
+- 📊 Registro automático de estadísticas de cada organización.
+
+Este historial servirá de base para futuras funciones de consulta y generación de informes.
+
