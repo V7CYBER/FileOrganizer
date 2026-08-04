@@ -6,7 +6,7 @@ from core.clasificador import clasificar_archivos
 from core.movimientos import mover_archivos
 from core.deshacer import deshacer_ultima_organizacion
 from core.mensajes import mostrar_error, mostrar_error_ruta
-from core.estadisticas import guardar_estadisticas
+from core.estadisticas import guardar_estadisticas, leer_estadisticas
 
 def seleccionar_carpeta(simulacion=False):
 
@@ -98,17 +98,64 @@ def seleccionar_carpeta(simulacion=False):
 
     print("\n----------------------------------------")
     print("Proceso finalizado correctamente.")
+
+def mostrar_estadisticas():
+
+    historial = leer_estadisticas()
+
+    print("\n========================================")
+    print("           ESTADÍSTICAS")
+    print("========================================")
+
+    if not historial:
+        print("\nNo existen estadísticas guardadas.")
+        print("----------------------------------------")
+        return
+
+    total_organizaciones = len(historial)
+
+    total_analizados = 0
+    total_movidos = 0
+    total_omitidos = 0
+
+    categorias = {}
+
+    for registro in historial:
+
+        total_analizados += registro["analizados"]
+        total_movidos += registro["movidos"]
+        total_omitidos += registro["omitidos"]
+
+        for categoria, cantidad in registro["categorias"].items():
+            categorias[categoria] = (
+                categorias.get(categoria, 0) + cantidad
+            )
+
+    print(f"\nOrganizaciones........ {total_organizaciones}")
+    print(f"Archivos analizados... {total_analizados}")
+    print(f"Archivos movidos...... {total_movidos}")
+    print(f"Archivos omitidos..... {total_omitidos}")
+
+    print("\n----------------------------------------")
+    print("Categorías\n")
+
+    for categoria, cantidad in sorted(categorias.items()):
+        print(f"{categoria:<24} {cantidad}")
+
+    print("\n----------------------------------------")
+
 def main():
 
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.3")
+        print("        FILE ORGANIZER v2.4")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")
         print("3) Deshacer última organización")
-        print("4) Salir")
+        print("4) Ver estadisticas")
+        print("5) Salir")
 
         opcion = input("\nSeleccione una opción: ").strip()
 
@@ -124,7 +171,13 @@ def main():
              
              deshacer_ultima_organizacion()
 
+
         elif opcion == "4":
+            
+           mostrar_estadisticas()
+
+
+        elif opcion == "5":
 
             print("\n¡Hasta la próxima!")
             break

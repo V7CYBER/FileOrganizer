@@ -30,3 +30,19 @@ def guardar_estadisticas(ruta, estadisticas):
 
     with open(archivo, "w", encoding="utf-8") as f:
         json.dump(historial, f, indent=4, ensure_ascii=False)
+
+
+def leer_estadisticas():
+
+    archivo = (
+        Path(__file__).resolve().parent.parent
+        / "stats"
+        / "estadisticas.json"
+    )
+
+    if not archivo.exists():
+        return []
+
+    with open(archivo, "r", encoding="utf-8") as f:
+        return json.load(f)
+

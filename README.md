@@ -81,7 +81,16 @@ FileOrganizer/
 
 En desarrollo.
 # 📂 FileOrganizer
-
+```text
+========================================
+        FILE ORGANIZER v2.4
+========================================
+1) Organizar carpeta
+2) Modo simulación
+3) Deshacer última organización
+4) Ver estadísticas
+5) Salir
+```
 FileOrganizer es una aplicación desarrollada en Python para organizar archivos automáticamente según su extensión.
 
 ## Funciones actuales
@@ -98,7 +107,7 @@ FileOrganizer es una aplicación desarrollada en Python para organizar archivos 
 - ✅ Manejo de errores
 - ✅ Carpetas configurables mediante JSON
 - ✅ Modo simulación (v2.1)
-
+- 📈 Consulta de estadísticas desde el menú.
 ---
 
 # Versiones
@@ -133,7 +142,23 @@ FileOrganizer es una aplicación desarrollada en Python para organizar archivos 
 - 📊 Registro automático de estadísticas de cada organización.
 ## Estadísticas
 
-A partir de la versión **v2.3**, FileOrganizer guarda automáticamente un historial de cada organización realizada.
+A partir de la versión **v2.4**, FileOrganizer registra automáticamente todas las organizaciones realizadas y permite consultarlas desde el menú principal.
+
+Las estadísticas se almacenan en:
+
+```text
+stats/estadisticas.json
+```
+
+Actualmente se muestran:
+
+- Número de organizaciones realizadas.
+- Archivos analizados.
+- Archivos movidos.
+- Archivos omitidos.
+- Total de archivos organizados por categoría.
+
+Esta funcionalidad servirá como base para futuras consultas e informes más avanzados.
 
 Las estadísticas se almacenan en:
 
