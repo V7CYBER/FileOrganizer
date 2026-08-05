@@ -7,6 +7,7 @@ from core.movimientos import mover_archivos
 from core.deshacer import deshacer_ultima_organizacion
 from core.mensajes import mostrar_error, mostrar_error_ruta
 from core.estadisticas import guardar_estadisticas, leer_estadisticas
+from core.duplicados import buscar_duplicados
 
 def seleccionar_carpeta(simulacion=False):
 
@@ -144,18 +145,51 @@ def mostrar_estadisticas():
 
     print("\n----------------------------------------")
 
+def mostrar_duplicados():
+
+    ruta = input("¿Qué carpeta quieres analizar? ").strip()
+
+    carpeta = Path(ruta)
+
+    if not carpeta.exists() or not carpeta.is_dir():
+        mostrar_error_ruta(carpeta)
+        return
+
+    duplicados = buscar_duplicados(carpeta)
+
+    print("\n========================================")
+    print("      ARCHIVOS DUPLICADOS")
+    print("========================================")
+
+    print(f"\nGrupos encontrados..... {len(duplicados)}")
+
+    if not duplicados:
+        print("\nNo se encontraron archivos duplicados.")
+        print("----------------------------------------")
+        return
+
+    for nombre, lista in duplicados.items():
+
+        print(f"\n{nombre}")
+
+        for archivo in lista:
+            print(f"   {archivo}")
+
+        print("----------------------------------------")
+
 def main():
 
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.4")
+        print("        FILE ORGANIZER v2.5")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")
         print("3) Deshacer última organización")
         print("4) Ver estadisticas")
-        print("5) Salir")
+        print("5) Buscar archivos duplicados")
+        print("6) Salir")
 
         opcion = input("\nSeleccione una opción: ").strip()
 
@@ -176,8 +210,12 @@ def main():
             
            mostrar_estadisticas()
 
-
         elif opcion == "5":
+
+            mostrar_duplicados()   
+
+
+        elif opcion == "6":
 
             print("\n¡Hasta la próxima!")
             break

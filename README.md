@@ -25,15 +25,16 @@ Organizar automáticamente los archivos de una carpeta según su extensión, uti
 
 ```text
 FileOrganizer/
-├── core/
-│   ├── analizador.py
-│   ├── clasificador.py
-│   ├── creador.py
-│   ├── deshacer.py
-│   ├── estadisticas.py
-│   ├── logger.py
-│   ├── mensajes.py
-│   └── movimientos.py
+core/
+├── analizador.py
+├── clasificador.py
+├── creador.py
+├── deshacer.py
+├── duplicados.py
+├── estadisticas.py
+├── logger.py
+├── mensajes.py
+└── movimientos.py
 ├── docs/
 ├── logs/
 ├── stats/
@@ -83,7 +84,7 @@ En desarrollo.
 # 📂 FileOrganizer
 ```text
 ========================================
-        FILE ORGANIZER v2.4
+        FILE ORGANIZER v2.5
 ========================================
 1) Organizar carpeta
 2) Modo simulación
@@ -140,6 +141,16 @@ FileOrganizer es una aplicación desarrollada en Python para organizar archivos 
 - Modo simulación.
 - Sistema de carpetas ignoradas.
 - 📊 Registro automático de estadísticas de cada organización.
+### v2.5
+
+- Detección de archivos duplicados por nombre.
+- Búsqueda recursiva en todas las subcarpetas.
+- Agrupación automática de duplicados.
+- Uso de expresiones regulares para normalizar nombres.
+- Resultados ordenados alfabéticamente.
+- Informe del número de grupos de duplicados encontrados.
+✅ v2.5
+- Detección de archivos duplicados.
 ## Estadísticas
 
 A partir de la versión **v2.4**, FileOrganizer registra automáticamente todas las organizaciones realizadas y permite consultarlas desde el menú principal.
@@ -176,5 +187,10 @@ Cada registro contiene:
 - Número de archivos por categoría.
 - 📊 Registro automático de estadísticas de cada organización.
 
+Además, desde la versión 2.5 el programa incorpora:
+
+- 🔍 Detección de archivos duplicados por nombre.
+- 📂 Búsqueda recursiva en todas las subcarpetas.
+- 🧩 Agrupación automática de archivos con el mismo nombre base.
 Este historial servirá de base para futuras funciones de consulta y generación de informes.
 
