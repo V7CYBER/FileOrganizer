@@ -26,6 +26,9 @@ Organizar automáticamente los archivos de una carpeta según su extensión, uti
 ```text
 FileOrganizer/
 core/
+|__ hash.py
+|__ duplicados_hash.py
+|__ .gitignore
 ├── analizador.py
 ├── clasificador.py
 ├── creador.py
@@ -109,6 +112,8 @@ FileOrganizer es una aplicación desarrollada en Python para organizar archivos 
 - ✅ Carpetas configurables mediante JSON
 - ✅ Modo simulación (v2.1)
 - 📈 Consulta de estadísticas desde el menú.
+- ✅ Detección de duplicados por contenido (SHA-256).
+- ✅ Identificación automática de archivos vacíos.
 ---
 
 # Versiones
@@ -194,3 +199,15 @@ Además, desde la versión 2.5 el programa incorpora:
 - 🧩 Agrupación automática de archivos con el mismo nombre base.
 Este historial servirá de base para futuras funciones de consulta y generación de informes.
 
+## ✅ v2.6
+
+### Novedades
+
+- 🔐 Detección de archivos duplicados mediante SHA-256.
+- 📄 Detección de archivos con contenido idéntico aunque tengan distinto nombre.
+- ⚠ Identificación automática de archivos vacíos.
+- 📊 Número de archivos encontrados en cada grupo de duplicados.
+- 🧹 Reestructuración de `organizador.py`.
+- 🐍 Creación del entorno virtual `.venv`.
+- ⚙ Configuración de Black Formatter para el desarrollo.
+- 📝 Creación del archivo `.gitignore`.
