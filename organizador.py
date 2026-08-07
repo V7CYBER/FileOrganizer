@@ -9,6 +9,7 @@ from core.mensajes import mostrar_error, mostrar_error_ruta
 from core.estadisticas import guardar_estadisticas, leer_estadisticas
 from core.duplicados import buscar_duplicados
 from core.duplicados_hash import buscar_duplicados_hash
+from datetime import datetime
 
 def seleccionar_carpeta(simulacion=False):
 
@@ -184,10 +185,19 @@ def mostrar_duplicados_hash():
 
         for archivo in lista:
 
-            print(f"   {archivo}")
+            fecha = datetime.fromtimestamp(
+                archivo["fecha"]
+            ).strftime("%d/%m/%Y %H:%M:%S")
 
-        print("\n----------------------------------------")
+            print(f"Nombre               : {archivo['nombre']}")
+            print(f"Ruta                 : {archivo['ruta']}")
+            print(f"Tamaño               : {archivo['tamano']} bytes")
+            print(f"Última modificación  : {fecha}")
+            print()
 
+            print("----------------------------------------")
+
+            
         contador += 1
 
 def mostrar_duplicados():
@@ -227,7 +237,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.6")
+        print("        FILE ORGANIZER v2.7")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")

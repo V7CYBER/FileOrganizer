@@ -211,3 +211,33 @@ Este historial servirá de base para futuras funciones de consulta y generación
 - 🐍 Creación del entorno virtual `.venv`.
 - ⚙ Configuración de Black Formatter para el desarrollo.
 - 📝 Creación del archivo `.gitignore`.
+## v2.7
+
+### Novedades
+
+* Detección de duplicados por contenido mediante SHA-256.
+* Obtención automática de metadatos de cada archivo duplicado.
+* Visualización de:
+
+  * Nombre del archivo.
+  * Ruta completa.
+  * Tamaño.
+  * Fecha de última modificación.
+* Conversión de timestamps Unix a formato de fecha legible mediante `datetime`.
+* Identificación específica de grupos cuyo hash corresponde a archivos vacíos.
+* Refactorización del módulo `duplicados_hash.py` para trabajar con estructuras de datos enriquecidas (diccionarios con metadatos), preparando el proyecto para la futura generación de informes.
+
+### Competencias adquiridas
+
+* Uso de `Path.stat()`.
+* Obtención de metadatos del sistema de archivos.
+* Manejo de timestamps Unix.
+* Conversión de fechas con `datetime`.
+* Diseño de estructuras de datos basadas en listas de diccionarios.
+* Separación entre lógica de negocio (`core/`) y presentación (`organizador.py`).
+
+### Próxima versión (v2.8)
+
+* Generación de informes profesionales.
+* Exportación de resultados a archivos de auditoría.
+* Base para futuras funciones de análisis forense.
