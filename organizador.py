@@ -8,6 +8,7 @@ from core.deshacer import deshacer_ultima_organizacion
 from core.mensajes import mostrar_error, mostrar_error_ruta
 from core.estadisticas import guardar_estadisticas, leer_estadisticas
 from core.duplicados import buscar_duplicados
+from core.duplicados_hash import buscar_duplicados_hash
 
 def seleccionar_carpeta(simulacion=False):
 
@@ -145,6 +146,50 @@ def mostrar_estadisticas():
 
     print("\n----------------------------------------")
 
+
+def mostrar_duplicados_hash():
+
+    ruta = input("¿Qué carpeta quieres analizar? ").strip()
+
+    duplicados = buscar_duplicados_hash(ruta)
+
+    print("\n========================================")
+    print(" DUPLICADOS POR CONTENIDO (SHA-256)")
+    print("========================================")
+
+    print(f"\nGrupos encontrados..... {len(duplicados)}")
+
+    if not duplicados:
+
+        print("\nNo se encontraron archivos duplicados.")
+        print("----------------------------------------")
+        return
+
+    contador = 1
+
+    for hash_archivo, lista in duplicados.items():
+
+        print(f"\nGrupo {contador}\n")
+        if hash_archivo == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855":
+
+            print("⚠ Archivos vacíos")
+
+        else:
+
+            print("Hash")
+            print(f"{hash_archivo[:16]}...")
+
+        print(f"Archivos encontrados: {len(lista)}")
+        print("\nArchivos\n")
+
+        for archivo in lista:
+
+            print(f"   {archivo}")
+
+        print("\n----------------------------------------")
+
+        contador += 1
+
 def mostrar_duplicados():
 
     ruta = input("¿Qué carpeta quieres analizar? ").strip()
@@ -182,14 +227,15 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.5")
+        print("        FILE ORGANIZER v2.6")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")
         print("3) Deshacer última organización")
         print("4) Ver estadisticas")
-        print("5) Buscar archivos duplicados")
-        print("6) Salir")
+        print("5) Buscar archivos duplicados por nombre")
+        print("6) Buscar archivos duplicados por contenido (SHA-256)")
+        print("7) Salir")
 
         opcion = input("\nSeleccione una opción: ").strip()
 
@@ -212,10 +258,13 @@ def main():
 
         elif opcion == "5":
 
-            mostrar_duplicados()   
-
+            mostrar_duplicados()  
 
         elif opcion == "6":
+
+            mostrar_duplicados_hash() 
+
+        elif opcion == "7":
 
             print("\n¡Hasta la próxima!")
             break
