@@ -29,7 +29,44 @@ def generar_informe_duplicados(carpeta, duplicados):
     lineas.append("-" * 60)
     lineas.append("")
     lineas.append(f"Grupos encontrados.... {len(duplicados)}")
+    total_archivos = 0
+    espacio_duplicados = 0
+    espacio_recuperable = 0
+    grupos_vacios = 0
 
+    for hash_archivo, lista in duplicados.items():
+
+        total_archivos += len(lista)
+
+        tamano_grupo = sum(
+            archivo["tamano"]
+            for archivo in lista
+        )
+
+        espacio_duplicados += tamano_grupo
+
+        if lista[0]["tamano"] == 0:
+            grupos_vacios += 1
+        else:
+            espacio_recuperable += (
+                tamano_grupo - lista[0]["tamano"]
+            )
+
+    lineas.append(
+        f"Archivos duplicados.... {total_archivos}"
+    )
+
+    lineas.append(
+        f"Espacio ocupado....... {espacio_duplicados} bytes"
+    )
+
+    lineas.append(
+        f"Espacio recuperable... {espacio_recuperable} bytes"
+    )
+
+    lineas.append(
+        f"Grupos de vacíos...... {grupos_vacios}"
+    )
     contador = 1
 
     for hash_archivo, lista in duplicados.items():

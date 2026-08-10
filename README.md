@@ -236,8 +236,28 @@ Este historial servirá de base para futuras funciones de consulta y generación
 * Diseño de estructuras de datos basadas en listas de diccionarios.
 * Separación entre lógica de negocio (`core/`) y presentación (`organizador.py`).
 
-### Próxima versión (v2.8)
+## v2.9
 
-* Generación de informes profesionales.
-* Exportación de resultados a archivos de auditoría.
-* Base para futuras funciones de análisis forense.
+### Objetivo técnico
+
+Se amplía el sistema de informes de duplicados para incluir un resumen cuantitativo del análisis, facilitando la interpretación de los resultados y preparando el proyecto para futuras funciones de auditoría.
+
+### Novedades
+
+- 📊 Conteo total de archivos duplicados.
+- 💾 Cálculo del espacio ocupado por los archivos duplicados.
+- ♻️ Cálculo del espacio potencialmente recuperable.
+- ⚠️ Conteo de grupos formados exclusivamente por archivos vacíos.
+- 📄 Inclusión de estas métricas en los informes `.txt`.
+- 🔢 Mantenimiento del detalle individual de cada archivo duplicado.
+- 🧾 Actualización de la versión del programa a v2.9.
+
+### Ejemplo de resumen
+
+```text
+Grupos encontrados.... 2
+Archivos duplicados.... 18
+Espacio ocupado....... 22 bytes
+Espacio recuperable... 11 bytes
+Grupos de vacíos...... 1
+```
