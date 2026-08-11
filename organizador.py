@@ -154,6 +154,39 @@ def mostrar_estadisticas():
 
     print("\n----------------------------------------")
 
+def mostrar_historial():
+
+    historial = leer_estadisticas()
+
+    print("\n========================================")
+    print("       HISTORIAL DE ORGANIZACIONES")
+    print("========================================")
+
+    if not historial:
+        print("\nNo existen organizaciones registradas.")
+        print("----------------------------------------")
+        return
+
+    for numero, registro in enumerate(historial, start=1):
+
+        print(f"\nOrganización #{numero}")
+        print("----------------------------------------")
+
+        print(f"Fecha................ {registro.get('fecha', 'N/D')}")
+        print(f"Ruta................. {registro.get('ruta', 'N/D')}")
+        print(f"Archivos analizados.. {registro.get('analizados', 0)}")
+        print(f"Archivos movidos..... {registro.get('movidos', 0)}")
+        print(f"Archivos omitidos.... {registro.get('omitidos', 0)}")
+
+        print("\nCategorías\n")
+
+        for categoria, cantidad in sorted(
+            registro.get("categorias", {}).items()
+        ):
+            print(f"{categoria:<24} {cantidad}")
+
+        print("\n----------------------------------------")
+
 
 
 def mostrar_duplicados_hash():
@@ -245,7 +278,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.10")
+        print("        FILE ORGANIZER v2.11")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")
@@ -253,7 +286,8 @@ def main():
         print("4) Ver estadisticas")
         print("5) Buscar archivos duplicados por nombre")
         print("6) Buscar archivos duplicados por contenido (SHA-256)")
-        print("7) Salir")
+        print("7) Ver historial de organizaciones")
+        print("8) Salir")
 
         opcion = input("\nSeleccione una opción: ").strip()
 
@@ -283,6 +317,10 @@ def main():
             mostrar_duplicados_hash() 
 
         elif opcion == "7":
+
+            mostrar_historial()
+
+        elif opcion == "8":
 
             print("\n¡Hasta la próxima!")
             break

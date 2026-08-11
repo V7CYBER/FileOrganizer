@@ -307,4 +307,121 @@ Refactorizar el sistema de estadísticas para separar el cálculo de los datos d
 
    Documentos               1
    Fotos                    1
-eof
+
+## v2.11
+
+### Objetivo técnico
+
+Añadir un historial consultable de las organizaciones realizadas, reutilizando el historial de estadísticas existente para permitir al usuario revisar las operaciones anteriores sin modificar los datos almacenados.
+
+### Cambios realizados
+
+1. **Nueva función de historial**
+
+   Se añadió `mostrar_historial()` en:
+
+   `organizador.py`
+
+   Esta función recupera el historial mediante `leer_estadisticas()` y presenta cada organización registrada de forma individual.
+
+2. **Nuevo acceso desde el menú**
+
+   Se añadió una nueva opción:
+
+   ```text
+   7) Ver historial de organizaciones
+   ```
+
+   La opción permite consultar todas las organizaciones almacenadas en `stats/estadisticas.json`.
+
+3. **Información mostrada**
+
+   Para cada organización se muestra:
+
+   * Número de organización.
+   * Fecha.
+   * Ruta analizada.
+   * Archivos analizados.
+   * Archivos movidos.
+   * Archivos omitidos.
+   * Categorías procesadas.
+
+4. **Recorrido del historial**
+
+   Se utiliza `enumerate()` para numerar automáticamente las organizaciones comenzando desde 1.
+
+5. **Acceso seguro a los datos**
+
+   Se utiliza `dict.get()` para acceder a los campos del historial de forma segura, evitando errores si algún registro antiguo no contiene una determinada clave.
+
+6. **Manejo de historial vacío**
+
+   Si no existen organizaciones registradas, el programa muestra un mensaje informativo y vuelve al menú sin producir errores.
+
+7. **Actualización del menú**
+
+   La opción de salida se desplaza a:
+
+   ```text
+   8) Salir
+   ```
+
+   mientras que la opción 7 queda reservada para consultar el historial.
+
+### Problemas corregidos durante el desarrollo
+
+Durante la implementación se produjo un problema de integración debido a la indentación de `mostrar_historial()`, que inicialmente quedó dentro de `mostrar_estadisticas()`.
+
+Esto provocaba:
+
+```text
+NameError: name 'mostrar_historial' is not defined
+```
+
+Se corrigió la estructura del código para que `mostrar_historial()` sea una función independiente al mismo nivel que el resto de funciones principales.
+
+También se detectó una discrepancia entre las etiquetas del menú y la lógica de las opciones 7 y 8. La lógica era correcta, pero los textos del menú estaban invertidos.
+
+Finalmente se corrigió para que:
+
+```text
+7) Ver historial de organizaciones
+8) Salir
+```
+
+### Competencias adquiridas
+
+* Uso de `enumerate()`.
+* Recorrido de estructuras de datos.
+* Uso seguro de `dict.get()`.
+* Reutilización de funciones existentes.
+* Separación entre almacenamiento y presentación.
+* Manejo de historiales.
+* Integración de nuevas opciones en un menú interactivo.
+* Identificación y corrección de errores de ámbito (`NameError`).
+* Corrección de errores de indentación.
+* Detección de incoherencias entre interfaz y lógica.
+* Pruebas de integración después de modificar el menú.
+
+### Resultado
+
+FileOrganizer dispone ahora de un historial consultable de las organizaciones realizadas.
+
+El historial continúa almacenándose en:
+
+`stats/estadisticas.json`
+
+La nueva función reutiliza `leer_estadisticas()` para recuperar los datos y `organizador.py` se encarga de presentarlos al usuario.
+
+La opción de historial constituye una base para futuras funciones de auditoría, búsqueda y análisis de operaciones.
+
+### Validación
+
+La versión v2.11 ha sido validada mediante:
+
+```bash
+python3 -m py_compile core/*.py organizador.py
+git diff --check
+```
+
+Ambas comprobaciones se completaron correctamente.
