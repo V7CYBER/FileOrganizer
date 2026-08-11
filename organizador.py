@@ -6,10 +6,14 @@ from core.clasificador import clasificar_archivos
 from core.movimientos import mover_archivos
 from core.deshacer import deshacer_ultima_organizacion
 from core.mensajes import mostrar_error, mostrar_error_ruta
-from core.estadisticas import guardar_estadisticas, leer_estadisticas
 from core.duplicados import buscar_duplicados
 from core.duplicados_hash import buscar_duplicados_hash
 from datetime import datetime
+from core.estadisticas import (
+    guardar_estadisticas,
+    leer_estadisticas,
+    calcular_resumen_estadisticas
+)
 
 def seleccionar_carpeta(simulacion=False):
 
@@ -84,7 +88,7 @@ def seleccionar_carpeta(simulacion=False):
 
     estadisticas = mover_archivos(clasificacion, carpeta)
 
-    guardar_estadisticas(carpeta, estadisticas)
+    core.estadisticas.guardar_estadisticas(carpeta, estadisticas)
 
     print("\n========================================")
     print("           RESUMEN FINAL")
@@ -103,7 +107,6 @@ def seleccionar_carpeta(simulacion=False):
     print("Proceso finalizado correctamente.")
 
 def mostrar_estadisticas():
-
     historial = leer_estadisticas()
 
     print("\n========================================")
@@ -115,37 +118,42 @@ def mostrar_estadisticas():
         print("----------------------------------------")
         return
 
-    total_organizaciones = len(historial)
+    resumen = calcular_resumen_estadisticas(historial)
 
-    total_analizados = 0
-    total_movidos = 0
-    total_omitidos = 0
-
-    categorias = {}
-
-    for registro in historial:
-
-        total_analizados += registro["analizados"]
-        total_movidos += registro["movidos"]
-        total_omitidos += registro["omitidos"]
-
-        for categoria, cantidad in registro["categorias"].items():
-            categorias[categoria] = (
-                categorias.get(categoria, 0) + cantidad
-            )
-
-    print(f"\nOrganizaciones........ {total_organizaciones}")
-    print(f"Archivos analizados... {total_analizados}")
-    print(f"Archivos movidos...... {total_movidos}")
-    print(f"Archivos omitidos..... {total_omitidos}")
+    print(f"\nOrganizaciones........ {resumen['organizaciones']}")
+    print(f"Archivos analizados... {resumen['analizados']}")
+    print(f"Archivos movidos...... {resumen['movidos']}")
+    print(f"Archivos omitidos..... {resumen['omitidos']}")
 
     print("\n----------------------------------------")
-    print("Categorías\n")
+    print("Categorías acumuladas\n")
 
-    for categoria, cantidad in sorted(categorias.items()):
+    for categoria, cantidad in sorted(
+        resumen["categorias"].items()
+    ):
+        print(f"{categoria:<24} {cantidad}")
+
+    ultima = resumen["ultima_operacion"]
+
+    print("\n----------------------------------------")
+    print("ÚLTIMA OPERACIÓN")
+    print("----------------------------------------")
+
+    print(f"\nFecha................ {ultima['fecha']}")
+    print(f"Ruta................. {ultima['ruta']}")
+    print(f"Archivos analizados.. {ultima['analizados']}")
+    print(f"Archivos movidos..... {ultima['movidos']}")
+    print(f"Archivos omitidos.... {ultima['omitidos']}")
+
+    print("\nCategorías\n")
+
+    for categoria, cantidad in sorted(
+        ultima["categorias"].items()
+    ):
         print(f"{categoria:<24} {cantidad}")
 
     print("\n----------------------------------------")
+
 
 
 def mostrar_duplicados_hash():
@@ -237,7 +245,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.9")
+        print("        FILE ORGANIZER v2.10")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")

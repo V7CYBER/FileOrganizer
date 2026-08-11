@@ -261,3 +261,50 @@ Espacio ocupado....... 22 bytes
 Espacio recuperable... 11 bytes
 Grupos de vacíos...... 1
 ```
+## v2.10
+
+### Objetivo técnico
+
+Refactorizar el sistema de estadísticas para separar el cálculo de los datos de su presentación, haciendo `organizador.py` más limpio y preparando FileOrganizer para futuras funciones de análisis, auditoría y visualización.
+
+### Cambios realizados
+
+1. **Nueva función de resumen de estadísticas**
+
+   Se añadió `calcular_resumen_estadisticas()` en:
+
+   `core/estadisticas.py`
+
+   Esta función centraliza el cálculo de:
+
+   - Número total de organizaciones.
+   - Archivos analizados.
+   - Archivos movidos.
+   - Archivos omitidos.
+   - Categorías acumuladas.
+   - Última operación registrada.
+
+2. **Separación entre lógica y presentación**
+
+   Antes, `organizador.py` realizaba directamente los cálculos acumulados de las estadísticas.
+
+   Ahora `core/estadisticas.py` se encarga de procesar el historial y `organizador.py` únicamente presenta los resultados.
+
+3. **Estadísticas acumuladas**
+
+   La opción `4) Ver estadísticas` muestra ahora los datos acumulados de todas las organizaciones realizadas.
+
+   Ejemplo:
+
+   ```text
+   Organizaciones........ 1
+   Archivos analizados... 2
+   Archivos movidos...... 2
+   Archivos omitidos..... 0
+
+   ----------------------------------------
+   Categorías acumuladas
+
+   Documentos               1
+   Fotos                    1
+eof

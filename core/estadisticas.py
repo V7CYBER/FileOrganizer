@@ -46,3 +46,39 @@ def leer_estadisticas():
     with open(archivo, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def calcular_resumen_estadisticas(historial):
+
+    if not historial:
+        return {
+            "organizaciones": 0,
+            "analizados": 0,
+            "movidos": 0,
+            "omitidos": 0,
+            "categorias": {},
+            "ultima_operacion": None
+        }
+
+    total_analizados = 0
+    total_movidos = 0
+    total_omitidos = 0
+    categorias = {}
+
+    for registro in historial:
+
+        total_analizados += registro.get("analizados", 0)
+        total_movidos += registro.get("movidos", 0)
+        total_omitidos += registro.get("omitidos", 0)
+
+        for categoria, cantidad in registro.get("categorias", {}).items():
+            categorias[categoria] = (
+                categorias.get(categoria, 0) + cantidad
+            )
+
+    return {
+        "organizaciones": len(historial),
+        "analizados": total_analizados,
+        "movidos": total_movidos,
+        "omitidos": total_omitidos,
+        "categorias": categorias,
+        "ultima_operacion": historial[-1]
+    }
