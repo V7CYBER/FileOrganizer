@@ -425,3 +425,95 @@ git diff --check
 ```
 
 Ambas comprobaciones se completaron correctamente.
+
+## v2.12
+
+### Objetivo técnico
+
+Ampliar el sistema de historial de organizaciones permitiendo consultar todas las operaciones registradas y filtrar el historial por una ruta concreta.
+
+### Cambios realizados
+
+1. **Filtrado del historial**
+
+   Se añadió `filtrar_historial()` en:
+
+   `core/estadisticas.py`
+
+   La función permite recuperar todo el historial o únicamente los registros correspondientes a una ruta determinada.
+
+2. **Nuevo submenú de historial**
+
+   La opción `7) Ver historial de organizaciones` incorpora:
+
+   - Mostrar todo el historial.
+   - Filtrar el historial por ruta.
+   - Volver al menú principal.
+
+3. **Separación de responsabilidades**
+
+   `core/estadisticas.py` se encarga de procesar y filtrar los datos del historial, mientras que `organizador.py` se ocupa de presentar la información al usuario.
+
+4. **Manejo de búsquedas sin resultados**
+
+   Cuando una ruta no tiene organizaciones registradas, el programa informa al usuario sin producir errores.
+
+### Competencias adquiridas
+
+- Filtrado de listas de diccionarios.
+- Uso de funciones reutilizables para procesar datos.
+- Separación entre lógica de datos y presentación.
+- Integración de nuevas funciones en un menú interactivo.
+- Manejo de búsquedas sin resultados.
+- Pruebas funcionales de diferentes rutas.
+- Mantenimiento de una arquitectura modular en Python.
+
+### Resultado
+
+FileOrganizer dispone ahora de un historial consultable y filtrable por ruta, proporcionando una base para futuras funciones de búsqueda, análisis y auditoría.
+
+## v2.12
+
+### Objetivo técnico
+
+Ampliar el sistema de historial de organizaciones permitiendo consultar todas las operaciones registradas y filtrar el historial por una ruta concreta.
+
+### Cambios realizados
+
+1. **Filtrado del historial**
+
+   Se añadió `filtrar_historial()` en:
+
+   `core/estadisticas.py`
+
+   La función permite recuperar todo el historial o únicamente los registros correspondientes a una ruta determinada.
+
+2. **Nuevo submenú de historial**
+
+   La opción `7) Ver historial de organizaciones` incorpora:
+
+   - Mostrar todo el historial.
+   - Filtrar el historial por ruta.
+   - Volver al menú principal.
+
+3. **Separación de responsabilidades**
+
+   `core/estadisticas.py` se encarga de procesar y filtrar los datos del historial, mientras que `organizador.py` se ocupa de presentar la información al usuario.
+
+4. **Manejo de búsquedas sin resultados**
+
+   Cuando una ruta no tiene organizaciones registradas, el programa informa al usuario sin producir errores.
+
+### Competencias adquiridas
+
+- Filtrado de listas de diccionarios.
+- Uso de funciones reutilizables para procesar datos.
+- Separación entre lógica de datos y presentación.
+- Integración de nuevas funciones en un menú interactivo.
+- Manejo de búsquedas sin resultados.
+- Pruebas funcionales de diferentes rutas.
+- Mantenimiento de una arquitectura modular en Python.
+
+### Resultado
+
+FileOrganizer dispone ahora de un historial consultable y filtrable por ruta, proporcionando una base para futuras funciones de búsqueda, análisis y auditoría.

@@ -12,7 +12,8 @@ from datetime import datetime
 from core.estadisticas import (
     guardar_estadisticas,
     leer_estadisticas,
-    calcular_resumen_estadisticas
+    calcular_resumen_estadisticas,
+    filtrar_historial
 )
 
 def seleccionar_carpeta(simulacion=False):
@@ -158,36 +159,66 @@ def mostrar_historial():
 
     historial = leer_estadisticas()
 
-    print("\n========================================")
-    print("       HISTORIAL DE ORGANIZACIONES")
-    print("========================================")
+    while True:
 
-    if not historial:
-        print("\nNo existen organizaciones registradas.")
-        print("----------------------------------------")
-        return
+        print("\n========================================")
+        print("       HISTORIAL DE ORGANIZACIONES")
+        print("========================================")
+        print("1) Mostrar todo el historial")
+        print("2) Filtrar por ruta")
+        print("3) Volver")
 
-    for numero, registro in enumerate(historial, start=1):
+        opcion = input("\nSeleccione una opción: ").strip()
 
-        print(f"\nOrganización #{numero}")
-        print("----------------------------------------")
+        if opcion == "1":
 
-        print(f"Fecha................ {registro.get('fecha', 'N/D')}")
-        print(f"Ruta................. {registro.get('ruta', 'N/D')}")
-        print(f"Archivos analizados.. {registro.get('analizados', 0)}")
-        print(f"Archivos movidos..... {registro.get('movidos', 0)}")
-        print(f"Archivos omitidos.... {registro.get('omitidos', 0)}")
+            resultados = filtrar_historial(historial)
 
-        print("\nCategorías\n")
+        elif opcion == "2":
 
-        for categoria, cantidad in sorted(
-            registro.get("categorias", {}).items()
-        ):
-            print(f"{categoria:<24} {cantidad}")
+            ruta = input("\nIntroduzca la ruta a buscar: ").strip()
+            resultados = filtrar_historial(historial, ruta)
 
-        print("\n----------------------------------------")
+        elif opcion == "3":
 
+            return
 
+        else:
+
+            print("\n✗ Opción no válida.\n")
+            continue
+
+        print("\n========================================")
+        print("       RESULTADOS DEL HISTORIAL")
+        print("========================================")
+
+        if not resultados:
+
+            print("\nNo se encontraron organizaciones.")
+            print("----------------------------------------")
+            continue
+
+        print(f"\nOrganizaciones encontradas: {len(resultados)}")
+
+        for numero, registro in enumerate(resultados, start=1):
+
+            print(f"\nOrganización #{numero}")
+            print("----------------------------------------")
+
+            print(f"Fecha................ {registro.get('fecha', 'N/D')}")
+            print(f"Ruta................. {registro.get('ruta', 'N/D')}")
+            print(f"Archivos analizados.. {registro.get('analizados', 0)}")
+            print(f"Archivos movidos..... {registro.get('movidos', 0)}")
+            print(f"Archivos omitidos.... {registro.get('omitidos', 0)}")
+
+            print("\nCategorías\n")
+
+            for categoria, cantidad in sorted(
+                registro.get("categorias", {}).items()
+            ):
+                print(f"{categoria:<24} {cantidad}")
+
+            print("\n----------------------------------------")
 
 def mostrar_duplicados_hash():
 
@@ -278,7 +309,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.11")
+        print("        FILE ORGANIZER v2.12")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")

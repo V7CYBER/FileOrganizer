@@ -46,6 +46,7 @@ def leer_estadisticas():
     with open(archivo, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 def calcular_resumen_estadisticas(historial):
 
     if not historial:
@@ -82,3 +83,17 @@ def calcular_resumen_estadisticas(historial):
         "categorias": categorias,
         "ultima_operacion": historial[-1]
     }
+
+
+def filtrar_historial(historial, ruta=None):
+
+    if ruta is None:
+        return historial
+
+    ruta = str(ruta)
+
+    return [
+        registro
+        for registro in historial
+        if registro.get("ruta") == ruta
+    ]
