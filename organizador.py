@@ -89,7 +89,7 @@ def seleccionar_carpeta(simulacion=False):
 
     estadisticas = mover_archivos(clasificacion, carpeta)
 
-    core.estadisticas.guardar_estadisticas(carpeta, estadisticas)
+    guardar_estadisticas(carpeta, estadisticas)
 
     print("\n========================================")
     print("           RESUMEN FINAL")

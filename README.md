@@ -472,48 +472,34 @@ Ampliar el sistema de historial de organizaciones permitiendo consultar todas la
 
 FileOrganizer dispone ahora de un historial consultable y filtrable por ruta, proporcionando una base para futuras funciones de búsqueda, análisis y auditoría.
 
-## v2.12
+### Corrección posterior a las pruebas
 
-### Objetivo técnico
+Durante las pruebas de integración de la v2.12 se detectó un error en
+`organizador.py` al guardar las estadísticas después de una organización.
 
-Ampliar el sistema de historial de organizaciones permitiendo consultar todas las operaciones registradas y filtrar el historial por una ruta concreta.
+La llamada utilizada inicialmente era:
 
-### Cambios realizados
+`core.estadisticas.guardar_estadisticas(carpeta, estadisticas)`
 
-1. **Filtrado del historial**
+pero el módulo no había sido importado mediante el nombre `core`.
 
-   Se añadió `filtrar_historial()` en:
+Se corrigió utilizando directamente la función importada:
 
-   `core/estadisticas.py`
+`guardar_estadisticas(carpeta, estadisticas)`
 
-   La función permite recuperar todo el historial o únicamente los registros correspondientes a una ruta determinada.
+La corrección fue validada mediante una organización real de archivos,
+comprobando que las estadísticas se registran correctamente en
+`stats/estadisticas.json`.
 
-2. **Nuevo submenú de historial**
+### Datos de estadísticas
 
-   La opción `7) Ver historial de organizaciones` incorpora:
+El archivo:
 
-   - Mostrar todo el historial.
-   - Filtrar el historial por ruta.
-   - Volver al menú principal.
+`stats/estadisticas.json`
 
-3. **Separación de responsabilidades**
+contiene datos generados durante la ejecución del programa y no forma parte
+del código fuente. Por este motivo se excluye del control de versiones
+mediante `.gitignore`.
 
-   `core/estadisticas.py` se encarga de procesar y filtrar los datos del historial, mientras que `organizador.py` se ocupa de presentar la información al usuario.
-
-4. **Manejo de búsquedas sin resultados**
-
-   Cuando una ruta no tiene organizaciones registradas, el programa informa al usuario sin producir errores.
-
-### Competencias adquiridas
-
-- Filtrado de listas de diccionarios.
-- Uso de funciones reutilizables para procesar datos.
-- Separación entre lógica de datos y presentación.
-- Integración de nuevas funciones en un menú interactivo.
-- Manejo de búsquedas sin resultados.
-- Pruebas funcionales de diferentes rutas.
-- Mantenimiento de una arquitectura modular en Python.
-
-### Resultado
-
-FileOrganizer dispone ahora de un historial consultable y filtrable por ruta, proporcionando una base para futuras funciones de búsqueda, análisis y auditoría.
+La estructura modular de `core/estadisticas.py` se mantiene separada de la
+presentación realizada por `organizador.py`.
