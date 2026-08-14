@@ -1,7 +1,13 @@
 from pathlib import Path
-from core.clasificador import cargar_configuracion
+
+from core.configuracion import (
+    cargar_configuracion,
+    obtener_carpetas_ignoradas
+)
+
 
 def analizar_carpeta(ruta):
+
     carpeta = Path(ruta)
 
     archivos = 0
@@ -9,14 +15,16 @@ def analizar_carpeta(ruta):
     extensiones = {}
 
     config = cargar_configuracion()
-    ignorar = config.get("ignorar", [])
+    ignorar = obtener_carpetas_ignoradas(config)
 
     for elemento in carpeta.iterdir():
 
         if elemento.is_file():
+
             archivos += 1
 
             extension = elemento.suffix.lower()
+
             if extension == "":
                 extension = "[sin extensión]"
 
@@ -24,10 +32,10 @@ def analizar_carpeta(ruta):
 
         elif elemento.is_dir():
 
-             if elemento.name in ignorar:
+            if elemento.name in ignorar:
                 continue
 
-             carpetas += 1
+            carpetas += 1
 
     return {
         "ruta": carpeta.resolve(),

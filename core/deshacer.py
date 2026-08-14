@@ -1,10 +1,12 @@
 from pathlib import Path
 import shutil
 
+from core.rutas import ARCHIVO_LOG_MOVIMIENTOS
+
 
 def deshacer_ultima_organizacion():
 
-    archivo_log = Path("logs/movimientos.log")
+    archivo_log = ARCHIVO_LOG_MOVIMIENTOS
 
     if not archivo_log.exists():
 
@@ -14,7 +16,6 @@ def deshacer_ultima_organizacion():
     print("✓ Historial encontrado.")
 
     with open(archivo_log, "r", encoding="utf-8") as log:
-
         lineas = log.readlines()
 
     if not lineas:
@@ -32,11 +33,15 @@ def deshacer_ultima_organizacion():
 
         partes = linea.split(" | ")
 
+        if len(partes) != 3:
+            print(f"✗ Registro de log inválido: {linea}")
+            continue
+
         registro = partes[0]
         ruta_original = partes[1]
         categoria = partes[2]
 
-        nombre_archivo = registro.split("] ")[1]
+        nombre_archivo = registro.split("] ", 1)[1]
 
         origen = Path(ruta_original) / categoria / nombre_archivo
         destino = Path(ruta_original) / nombre_archivo

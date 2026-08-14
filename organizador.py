@@ -309,7 +309,7 @@ def main():
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v2.12")
+        print("        FILE ORGANIZER v3.0")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")

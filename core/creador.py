@@ -1,20 +1,20 @@
 from pathlib import Path
 
-CARPETAS = [
-    "Fotos",
-    "Documentos",
-    "Música",
-    "Vídeos",
-    "Comprimidos",
-    "Otros"
-]
+from core.configuracion import cargar_configuracion
 
 
 def crear_carpetas(ruta):
 
     carpeta = Path(ruta)
+    configuracion = cargar_configuracion()
 
-    for nombre in CARPETAS:
+    categorias = [
+        nombre
+        for nombre in configuracion
+        if nombre != "ignorar"
+    ]
+
+    for nombre in categorias:
 
         destino = carpeta / nombre
 

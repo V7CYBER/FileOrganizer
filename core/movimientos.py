@@ -33,26 +33,6 @@ def obtener_destino_libre(destino):
         contador += 1
 
 
-def mover_fotos(ruta):
-
-    carpeta = Path(ruta)
-    destino = carpeta / "Fotos"
-
-
-    extensiones_fotos = [".jpg", ".jpeg", ".png", ".gif"]
-
-    for archivo in carpeta.iterdir():
-
-        if archivo.is_file():
-
-            if archivo.suffix.lower() in extensiones_fotos:
-
-                nuevo_destino = obtener_destino_libre(destino / archivo.name)
-
-                shutil.move(str(archivo), str(nuevo_destino))
-
-                print(f"📷 {archivo.name} → Fotos/")
-
 
 def mover_archivos(clasificacion, ruta):
 

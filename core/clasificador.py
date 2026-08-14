@@ -1,16 +1,6 @@
 from pathlib import Path
-import json
 
-
-
-def cargar_configuracion():
-
-    archivo = Path("config.json")
-
-    with open(archivo, "r", encoding="utf-8") as f:
-
-        return json.load(f)
-    
+from core.configuracion import cargar_configuracion
 
 
 def clasificar_archivos(ruta):
