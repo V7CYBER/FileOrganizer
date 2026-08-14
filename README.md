@@ -503,3 +503,131 @@ mediante `.gitignore`.
 
 La estructura modular de `core/estadisticas.py` se mantiene separada de la
 presentación realizada por `organizador.py`.
+
+## v3.0
+
+### Objetivo técnico
+
+Centralizar las rutas utilizadas por FileOrganizer para eliminar rutas relativas dependientes del directorio desde el que se ejecuta el programa y mejorar la organización interna del código.
+
+### Cambios realizados
+
+1. **Nuevo módulo de rutas**
+
+   Se añadió:
+
+   `core/rutas.py`
+
+   Este módulo centraliza las rutas principales del proyecto:
+
+   * Ruta raíz del proyecto.
+   * Ruta de `config.json`.
+   * Carpeta `logs`.
+   * Archivo `logs/movimientos.log`.
+
+   Las rutas se construyen a partir de la ubicación real del proyecto mediante `Path(__file__).resolve()`.
+
+2. **Nuevo módulo de configuración**
+
+   Se añadió:
+
+   `core/configuracion.py`
+
+   Este módulo centraliza la carga de `config.json` y la obtención de las carpetas configuradas como ignoradas.
+
+   De esta forma, la gestión de la configuración queda separada de la lógica de clasificación.
+
+3. **Actualización del logger**
+
+   `core/logger.py` deja de construir directamente la ruta de `logs/movimientos.log` y utiliza las rutas definidas en:
+
+   `core/rutas.py`
+
+4. **Actualización del sistema de deshacer**
+
+   `core/deshacer.py` utiliza ahora:
+
+   `ARCHIVO_LOG_MOVIMIENTOS`
+
+   para localizar el historial de movimientos.
+
+   Se añadió además una comprobación para detectar registros de log inválidos antes de procesarlos.
+
+5. **Actualización del clasificador**
+
+   `core/clasificador.py` utiliza la configuración centralizada mediante `core.configuracion`.
+
+   La lógica de clasificación queda separada de la carga de configuración.
+
+6. **Actualización del analizador**
+
+   `core/analizador.py` utiliza la configuración centralizada para determinar las carpetas que deben ignorarse durante el análisis.
+
+7. **Actualización del creador de carpetas**
+
+   `core/creador.py` utiliza la configuración centralizada para trabajar con las categorías definidas en `config.json`.
+
+8. **Eliminación de código obsoleto**
+
+   Se eliminó la función `mover_fotos()` de:
+
+   `core/movimientos.py`
+
+   La función ya no tenía referencias en el proyecto y había quedado obsoleta dentro de la arquitectura actual.
+
+### Pruebas realizadas
+
+La versión v3.0 fue validada mediante:
+
+```bash
+python3 -m py_compile core/*.py organizador.py
+git diff --check
+```
+
+También se comprobaron:
+
+* Carga correcta de `config.json`.
+* Obtención de carpetas ignoradas.
+* Resolución absoluta de las rutas del proyecto.
+* Integración entre `logger.py` y `rutas.py`.
+* Integración entre `deshacer.py` y `rutas.py`.
+* Ausencia de referencias a las rutas antiguas.
+* Organización real de archivos.
+* Clasificación de archivos conocidos y desconocidos.
+* Creación automática de `Sin_clasificar`.
+* Registro correcto de movimientos.
+
+### Resultado
+
+FileOrganizer dispone ahora de una arquitectura más limpia y mantenible, con las rutas y la configuración centralizadas.
+
+La lógica relacionada con:
+
+* configuración,
+* rutas,
+* clasificación,
+* análisis,
+* movimientos,
+* registros,
+* deshacer
+
+queda mejor separada entre los módulos correspondientes.
+
+La versión v3.0 fue confirmada mediante Git con el commit:
+
+`40bc6d7 — v3.0: centraliza configuración y rutas del proyecto`
+
+El commit fue publicado correctamente en GitHub mediante `git push`.
+
+### Competencias adquiridas
+
+* Centralización de rutas mediante `pathlib`.
+* Uso de rutas absolutas basadas en `__file__`.
+* Separación de responsabilidades entre módulos.
+* Refactorización de código existente.
+* Eliminación segura de código obsoleto.
+* Integración entre módulos Python.
+* Validación mediante compilación y comprobaciones de Git.
+* Gestión de configuración externa mediante JSON.
+* Mantenimiento de compatibilidad con funcionalidades existentes.
+* Flujo completo de desarrollo, pruebas, commit y publicación mediante Git.
