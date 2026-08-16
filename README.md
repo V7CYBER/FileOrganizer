@@ -631,3 +631,257 @@ El commit fue publicado correctamente en GitHub mediante `git push`.
 * Gestión de configuración externa mediante JSON.
 * Mantenimiento de compatibilidad con funcionalidades existentes.
 * Flujo completo de desarrollo, pruebas, commit y publicación mediante Git.
+
+cd ~/CyberLab/04_Proyectos/FileOrganizer
+
+cat >> README.md <<'EOF'
+
+## v3.1
+
+### Objetivo técnico
+
+Añadir una capa de seguridad a FileOrganizer mediante análisis de firmas binarias, detección de archivos sospechosos, cuarentena y análisis defensivo de logs.
+
+La versión amplía el proyecto desde la organización de archivos hacia funcionalidades relacionadas con ciberseguridad defensiva y análisis de eventos.
+
+### Cambios realizados
+
+1. **Detección mediante Magic Numbers**
+
+   Se añadió:
+
+   `core/magic_numbers.py`
+
+   Este módulo permite analizar los primeros bytes de un archivo para determinar su tipo real mediante firmas conocidas.
+
+   Inicialmente se contemplan:
+
+   - JPEG
+   - PNG
+   - GIF
+   - PDF
+   - ZIP
+   - GZIP
+   - ELF
+   - PE / Windows executable
+
+2. **Verificación de extensión frente al contenido real**
+
+   Se añadió:
+
+   `core/verificador.py`
+
+   El módulo compara:
+
+   `extensión declarada ↔ tipo real detectado`
+
+   Los posibles estados son:
+
+   - `OK`
+   - `SOSPECHOSO`
+   - `NO_VERIFICADO`
+
+   Durante las pruebas se validó el caso de un archivo llamado:
+
+   `programa.jpg`
+
+   cuya firma real correspondía a:
+
+   `PE/Windows executable`
+
+   El archivo fue marcado correctamente como:
+
+   `SOSPECHOSO`
+
+3. **Nueva capa de seguridad**
+
+   Se añadió:
+
+   `core/seguridad.py`
+
+   Este módulo permite:
+
+   - verificar todos los archivos de una carpeta;
+   - obtener archivos correctos;
+   - obtener archivos sospechosos;
+   - identificar archivos no verificados;
+   - generar un resumen estadístico de seguridad.
+
+4. **Sistema de cuarentena**
+
+   Se añadió:
+
+   `core/cuarentena.py`
+
+   Los archivos sospechosos pueden trasladarse a:
+
+   `quarantine/`
+
+   El sistema:
+
+   - crea automáticamente la carpeta;
+   - evita sobrescribir archivos con el mismo nombre;
+   - conserva la ruta original;
+   - registra el destino;
+   - registra la extensión;
+   - registra el tipo real detectado;
+   - genera alertas de seguridad.
+
+   El registro se almacena en:
+
+   `quarantine/alertas.log`
+
+   La carpeta `quarantine/` se añadió a `.gitignore` para evitar incorporar muestras potencialmente sospechosas al repositorio.
+
+5. **Confirmación antes de aplicar la cuarentena**
+
+   La capa de seguridad se integró en el flujo de organización.
+
+   El programa:
+
+   1. analiza la carpeta;
+   2. verifica los archivos;
+   3. muestra las alertas;
+   4. presenta la clasificación prevista;
+   5. solicita confirmación;
+   6. únicamente después de confirmar aplica la cuarentena y organiza los archivos restantes.
+
+   Se validó que responder `N` no modifica los archivos.
+
+   También se comprobó que el modo simulación no mueve archivos a cuarentena.
+
+6. **Nuevo analizador de logs**
+
+   Se añadió:
+
+   `core/analizador_logs.py`
+
+   El módulo analiza archivos de texto línea por línea mediante expresiones regulares.
+
+   Permite detectar inicialmente eventos relacionados con:
+
+   - SQL Injection.
+   - Fallos repetidos de autenticación.
+
+7. **Detección de SQL Injection**
+
+   Se añadieron patrones para identificar posibles intentos relacionados con:
+
+   - `UNION SELECT`
+   - `OR 1=1`
+   - `AND 1=1`
+   - comparaciones sospechosas mediante `OR`
+   - `SLEEP()`
+   - `BENCHMARK()`
+   - `DROP TABLE`
+   - `information_schema`
+
+   Estos eventos se clasifican inicialmente con severidad:
+
+   `ALTA`
+
+8. **Detección de fallos de autenticación**
+
+   Se añadieron patrones como:
+
+   - `Failed password`
+   - `Failed login`
+   - `Authentication failure`
+   - `Invalid user`
+   - `Maximum authentication attempts`
+   - `Too many authentication failures`
+
+   Estos eventos se clasifican inicialmente con severidad:
+
+   `MEDIA`
+
+9. **Extracción de direcciones IPv4**
+
+   El analizador permite extraer direcciones IPv4 válidas de las líneas del log.
+
+   Se validan los cuatro octetos dentro del rango:
+
+   `0–255`
+
+   Una dirección inválida como:
+
+   `999.999.999.999`
+
+   no es aceptada.
+
+10. **Agrupación de eventos por IP**
+
+    Los eventos detectados pueden agruparse según la dirección IP de origen.
+
+    Esto permite identificar comportamientos repetitivos procedentes de una misma fuente.
+
+11. **Correlación de fuerza bruta**
+
+    Se añadió una primera correlación basada en:
+
+    - misma dirección IP;
+    - múltiples eventos de autenticación fallida;
+    - umbral configurable.
+
+    Durante las pruebas:
+
+    `192.168.1.20`
+
+    generó tres eventos de autenticación fallida y fue identificada como:
+
+    `POSIBLE_FUERZA_BRUTA`
+
+12. **Correlación temporal**
+
+    La detección se mejoró incorporando una ventana temporal.
+
+    Configuración validada:
+
+    - Umbral: 3 intentos.
+    - Ventana: 60 segundos.
+
+    Caso positivo:
+
+    - IP: `192.168.1.20`
+    - Intentos: 3
+    - Ventana real: 2.0 segundos
+    - Líneas: `[3, 4, 5]`
+
+    Resultado:
+
+    `POSIBLE_FUERZA_BRUTA`
+
+    También se realizó una prueba negativa con tres intentos separados durante varios minutos.
+
+    Resultado:
+
+    `0 alertas correlacionadas`
+
+13. **Integración en el menú principal**
+
+    Se añadió una nueva opción:
+
+    `8) Analizar archivo de logs`
+
+    La opción de salida pasa a ser:
+
+    `9) Salir`
+
+    El análisis muestra:
+
+    - eventos encontrados;
+    - SQL Injection;
+    - eventos de autenticación;
+    - severidades;
+    - IP de origen;
+    - contenido de la línea;
+    - alertas correlacionadas.
+
+### Pruebas realizadas
+
+La versión v3.1 fue validada mediante:
+
+```bash
+python3 -m py_compile core/*.py organizador.py
+git diff --check
+git diff --cached --check

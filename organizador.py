@@ -8,6 +8,13 @@ from core.deshacer import deshacer_ultima_organizacion
 from core.mensajes import mostrar_error, mostrar_error_ruta
 from core.duplicados import buscar_duplicados
 from core.duplicados_hash import buscar_duplicados_hash
+from core.seguridad import verificar_archivos, obtener_sospechosos
+from core.cuarentena import poner_en_cuarentena, generar_alerta
+from core.analizador_logs import (
+    analizar_log,
+    generar_resumen_logs,
+    detectar_fuerza_bruta_temporal,
+)
 from datetime import datetime
 from core.estadisticas import (
     guardar_estadisticas,
@@ -28,6 +35,35 @@ def seleccionar_carpeta(simulacion=False):
 
     datos = analizar_carpeta(carpeta)
 
+    resultados_seguridad = verificar_archivos(carpeta)
+    sospechosos = obtener_sospechosos(resultados_seguridad)
+
+    if sospechosos:
+
+        print("\n========================================")
+        print("       ⚠ ALERTAS DE SEGURIDAD")
+        print("========================================")
+
+        for resultado in sospechosos:
+
+            print(
+                generar_alerta(
+                    resultado["archivo"],
+                    resultado["tipo_real"],
+                    resultado["extension"],
+                )
+            )
+
+        if simulacion:
+
+            print("\nModo simulación:")
+            print(
+                "Los archivos sospechosos NO serán enviados "
+                "a cuarentena."
+            )
+
+        print("\n========================================")
+
     print("\n----------------------------------------")
     print(f"Ruta............... {datos['ruta']}")
     print(f"Archivos........... {datos['archivos']}")
@@ -36,9 +72,14 @@ def seleccionar_carpeta(simulacion=False):
     print("\nTipos de archivo encontrados:")
 
     if datos["extensiones"]:
-        for extension, cantidad in sorted(datos["extensiones"].items()):
+
+        for extension, cantidad in sorted(
+            datos["extensiones"].items()
+        ):
             print(f"  {extension:<15} {cantidad}")
+
     else:
+
         print("  No se encontraron archivos.")
 
     clasificacion = clasificar_archivos(carpeta)
@@ -46,10 +87,17 @@ def seleccionar_carpeta(simulacion=False):
     print("\n\nClasificación prevista:")
 
     if clasificacion:
+
         for nombre, categoria in clasificacion:
-            print(f"  {nombre:<35} → {categoria}")
+            print(
+                f"  {nombre:<35} → {categoria}"
+            )
+
     else:
-        print("  No se encontraron archivos para organizar.")
+
+        print(
+            "  No se encontraron archivos para organizar."
+        )
         return
 
     confirmacion = input(
@@ -57,27 +105,59 @@ def seleccionar_carpeta(simulacion=False):
     ).strip().upper()
 
     if confirmacion != "S":
+
         print("\nOperación cancelada por el usuario.")
         print("----------------------------------------")
         return
+
+    # La cuarentena solamente se ejecuta después
+    # de la confirmación del usuario.
+    if sospechosos and not simulacion:
+
+        print(
+            "\nEnviando archivos sospechosos "
+            "a cuarentena..."
+        )
+
+        for resultado in sospechosos:
+
+            destino = poner_en_cuarentena(
+                resultado["archivo"],
+                resultado["tipo_real"],
+                resultado["extension"],
+            )
+
+            print(
+                f"✓ {resultado['archivo'].name} → "
+                f"{destino}"
+            )
+
+        print("\n========================================")
 
     if simulacion:
 
         resumen = {}
 
         for _, categoria in clasificacion:
-            resumen[categoria] = resumen.get(categoria, 0) + 1
+            resumen[categoria] = (
+                resumen.get(categoria, 0) + 1
+            )
 
         print("\n========================================")
         print("      RESUMEN SIMULACIÓN")
         print("========================================")
 
-        print(f"\nArchivos analizados..... {len(clasificacion)}")
+        print(
+            f"\nArchivos analizados..... "
+            f"{len(clasificacion)}"
+        )
 
         print("\nSe moverían:\n")
 
         for categoria, cantidad in resumen.items():
-            print(f"{categoria:<24} {cantidad}")
+            print(
+                f"{categoria:<24} {cantidad}"
+            )
 
         print("\n----------------------------------------")
         print("No se ha movido ningún archivo.")
@@ -87,25 +167,48 @@ def seleccionar_carpeta(simulacion=False):
 
     print("\nMoviendo archivos...\n")
 
-    estadisticas = mover_archivos(clasificacion, carpeta)
+    estadisticas = mover_archivos(
+        clasificacion,
+        carpeta
+    )
 
-    guardar_estadisticas(carpeta, estadisticas)
+    guardar_estadisticas(
+        carpeta,
+        estadisticas
+    )
 
     print("\n========================================")
     print("           RESUMEN FINAL")
     print("========================================")
 
-    print(f"\nArchivos analizados..... {estadisticas['analizados']}")
-    print(f"Archivos movidos........ {estadisticas['movidos']}")
-    print(f"Archivos omitidos....... {estadisticas['omitidos']}")
+    print(
+        f"\nArchivos analizados..... "
+        f"{estadisticas['analizados']}"
+    )
+
+    print(
+        f"Archivos movidos........ "
+        f"{estadisticas['movidos']}"
+    )
+
+    print(
+        f"Archivos omitidos....... "
+        f"{estadisticas['omitidos']}"
+    )
 
     print("\n----------------------------------------\n")
 
-    for categoria, cantidad in estadisticas["categorias"].items():
-        print(f"{categoria:<24} {cantidad}")
+    for categoria, cantidad in (
+        estadisticas["categorias"].items()
+    ):
+        print(
+            f"{categoria:<24} {cantidad}"
+        )
 
     print("\n----------------------------------------")
     print("Proceso finalizado correctamente.")
+
+
 
 def mostrar_estadisticas():
     historial = leer_estadisticas()
@@ -304,12 +407,99 @@ def mostrar_duplicados():
 
         print("----------------------------------------")
 
+
+def mostrar_analisis_logs():
+
+    ruta = input(
+        "¿Qué archivo de log quieres analizar? "
+    ).strip()
+
+    archivo = Path(ruta)
+
+    if not archivo.exists() or not archivo.is_file():
+        print("\n✗ El archivo indicado no existe o no es válido.")
+        return
+
+    try:
+
+        eventos = analizar_log(archivo)
+
+    except (PermissionError, OSError) as error:
+
+        print(
+            f"\n✗ No se pudo analizar el archivo: {error}"
+        )
+        return
+
+    resumen = generar_resumen_logs(eventos)
+
+    alertas_fuerza_bruta = detectar_fuerza_bruta_temporal(
+        eventos,
+        umbral=3,
+        ventana_segundos=60,
+    )
+
+    print("\n========================================")
+    print("       ANÁLISIS DE SEGURIDAD")
+    print("========================================")
+
+    print(f"\nArchivo.............. {archivo}")
+    print(f"Eventos detectados... {resumen['eventos']}")
+    print(f"SQL Injection........ {resumen['sql_injection']}")
+    print(f"Fuerza bruta......... {resumen['fuerza_bruta']}")
+    print(f"Severidad ALTA....... {resumen['alta']}")
+    print(f"Severidad MEDIA...... {resumen['media']}")
+
+    if eventos:
+
+        print("\n===== EVENTOS DETECTADOS =====")
+
+        for evento in eventos:
+
+            ip = evento["ip"] or "N/D"
+
+            print(
+                f"\nLínea........ {evento['linea']}"
+                f"\nIP........... {ip}"
+                f"\nTipo......... {evento['tipo']}"
+                f"\nSeveridad.... {evento['severidad']}"
+                f"\nContenido.... {evento['contenido']}"
+            )
+
+    else:
+
+        print(
+            "\nNo se detectaron eventos de seguridad."
+        )
+
+    if alertas_fuerza_bruta:
+
+        print("\n========================================")
+        print("       ⚠ ALERTAS CORRELACIONADAS")
+        print("========================================")
+
+        for alerta in alertas_fuerza_bruta:
+
+            print(
+                f"\nIP.............. {alerta['ip']}"
+                f"\nTipo............ {alerta['tipo']}"
+                f"\nSeveridad....... {alerta['severidad']}"
+                f"\nIntentos........ {alerta['intentos']}"
+                f"\nVentana......... "
+                f"{alerta['ventana_segundos']} segundos"
+                f"\nLíneas.......... {alerta['lineas']}"
+            )
+
+    print("\n----------------------------------------")
+    print("Análisis finalizado.")
+
+
 def main():
 
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v3.0")
+        print("        FILE ORGANIZER v3.1")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")
@@ -318,7 +508,8 @@ def main():
         print("5) Buscar archivos duplicados por nombre")
         print("6) Buscar archivos duplicados por contenido (SHA-256)")
         print("7) Ver historial de organizaciones")
-        print("8) Salir")
+        print("8) Analizar archivo de logs")
+        print("9) Salir")
 
         opcion = input("\nSeleccione una opción: ").strip()
 
@@ -352,6 +543,10 @@ def main():
             mostrar_historial()
 
         elif opcion == "8":
+
+            mostrar_analisis_logs()
+
+        elif opcion == "9":
 
             print("\n¡Hasta la próxima!")
             break

@@ -5,3 +5,6 @@ __pycache__/
 logs/
 reports/*.txt
 stats/estadisticas.json
+
+# Archivos y muestras de cuarentena
+quarantine/
