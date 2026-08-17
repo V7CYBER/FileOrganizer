@@ -23,46 +23,37 @@ from core.estadisticas import (
     filtrar_historial
 )
 
-def seleccionar_carpeta(simulacion=False):
+def mostrar_alertas_seguridad(sospechosos, simulacion=False):
 
-    ruta = input("¿Qué carpeta quieres organizar? ").strip()
-
-    carpeta = Path(ruta)
-
-    if not carpeta.exists() or not carpeta.is_dir():
-        mostrar_error_ruta(carpeta)
+    if not sospechosos:
         return
 
-    datos = analizar_carpeta(carpeta)
+    print("\n========================================")
+    print("       ⚠ ALERTAS DE SEGURIDAD")
+    print("========================================")
 
-    resultados_seguridad = verificar_archivos(carpeta)
-    sospechosos = obtener_sospechosos(resultados_seguridad)
+    for resultado in sospechosos:
 
-    if sospechosos:
-
-        print("\n========================================")
-        print("       ⚠ ALERTAS DE SEGURIDAD")
-        print("========================================")
-
-        for resultado in sospechosos:
-
-            print(
-                generar_alerta(
-                    resultado["archivo"],
-                    resultado["tipo_real"],
-                    resultado["extension"],
-                )
+        print(
+            generar_alerta(
+                resultado["archivo"],
+                resultado["tipo_real"],
+                resultado["extension"],
             )
+        )
 
-        if simulacion:
+    if simulacion:
 
-            print("\nModo simulación:")
-            print(
-                "Los archivos sospechosos NO serán enviados "
-                "a cuarentena."
-            )
+        print("\nModo simulación:")
+        print(
+            "Los archivos sospechosos NO serán enviados "
+            "a cuarentena."
+        )
 
-        print("\n========================================")
+    print("\n========================================")
+
+
+def mostrar_analisis_carpeta(datos):
 
     print("\n----------------------------------------")
     print(f"Ruta............... {datos['ruta']}")
@@ -82,22 +73,77 @@ def seleccionar_carpeta(simulacion=False):
 
         print("  No se encontraron archivos.")
 
-    clasificacion = clasificar_archivos(carpeta)
+
+def mostrar_clasificacion(clasificacion):
 
     print("\n\nClasificación prevista:")
 
-    if clasificacion:
-
-        for nombre, categoria in clasificacion:
-            print(
-                f"  {nombre:<35} → {categoria}"
-            )
-
-    else:
+    if not clasificacion:
 
         print(
             "  No se encontraron archivos para organizar."
         )
+        return False
+
+    for nombre, categoria in clasificacion:
+        print(
+            f"  {nombre:<35} → {categoria}"
+        )
+
+    return True
+
+
+def enviar_sospechosos_cuarentena(sospechosos):
+
+    if not sospechosos:
+        return
+
+    print(
+        "\nEnviando archivos sospechosos "
+        "a cuarentena..."
+    )
+
+    for resultado in sospechosos:
+
+        destino = poner_en_cuarentena(
+            resultado["archivo"],
+            resultado["tipo_real"],
+            resultado["extension"],
+        )
+
+        print(
+            f"✓ {resultado['archivo'].name} → "
+            f"{destino}"
+        )
+
+    print("\n========================================")
+
+
+def seleccionar_carpeta(simulacion=False):
+
+    ruta = input("¿Qué carpeta quieres organizar? ").strip()
+
+    carpeta = Path(ruta)
+
+    if not carpeta.exists() or not carpeta.is_dir():
+        mostrar_error_ruta(carpeta)
+        return
+
+    datos = analizar_carpeta(carpeta)
+
+    resultados_seguridad = verificar_archivos(carpeta)
+    sospechosos = obtener_sospechosos(resultados_seguridad)
+
+    mostrar_alertas_seguridad(
+        sospechosos,
+        simulacion=simulacion,
+    )
+
+    mostrar_analisis_carpeta(datos)
+
+    clasificacion = clasificar_archivos(carpeta)
+
+    if not mostrar_clasificacion(clasificacion):
         return
 
     confirmacion = input(
@@ -114,25 +160,9 @@ def seleccionar_carpeta(simulacion=False):
     # de la confirmación del usuario.
     if sospechosos and not simulacion:
 
-        print(
-            "\nEnviando archivos sospechosos "
-            "a cuarentena..."
+        enviar_sospechosos_cuarentena(
+            sospechosos
         )
-
-        for resultado in sospechosos:
-
-            destino = poner_en_cuarentena(
-                resultado["archivo"],
-                resultado["tipo_real"],
-                resultado["extension"],
-            )
-
-            print(
-                f"✓ {resultado['archivo'].name} → "
-                f"{destino}"
-            )
-
-        print("\n========================================")
 
     if simulacion:
 

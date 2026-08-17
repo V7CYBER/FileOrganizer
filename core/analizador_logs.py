@@ -7,7 +7,7 @@ PATRONES_SEGURIDAD = {
         re.compile(r"\bunion\s+select\b", re.IGNORECASE),
         re.compile(r"\bor\s+1\s*=\s*1\b", re.IGNORECASE),
         re.compile(r"\band\s+1\s*=\s*1\b", re.IGNORECASE),
-        re.compile(r"\bor\s+'[^']*'\s*=\s*'[^']*'\b", re.IGNORECASE),
+        re.compile(r"\bor\s+'[^']*'\s*=\s*'[^']*'", re.IGNORECASE),
         re.compile(r"\bsleep\s*\(\s*\d+\s*\)", re.IGNORECASE),
         re.compile(r"\bbenchmark\s*\(", re.IGNORECASE),
         re.compile(r"\bdrop\s+table\b", re.IGNORECASE),
