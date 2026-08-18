@@ -1,7 +1,7 @@
 from core.analizador_logs import (
     analizar_log,
-    generar_resumen_logs,
     detectar_fuerza_bruta_temporal,
+    generar_resumen_logs,
 )
 
 
@@ -49,13 +49,9 @@ def test_log_solo_lineas_legitimas(tmp_path):
     archivo = tmp_path / "normal.log"
 
     archivo.write_text(
-        "\n".join(
-            [
-                '192.168.1.10 "GET /index.html HTTP/1.1" 200',
-                '192.168.1.11 "GET /contacto HTTP/1.1" 200',
-                '192.168.1.12 "POST /formulario HTTP/1.1" 201',
-            ]
-        ),
+        '192.168.1.10 "GET /index.html HTTP/1.1" 200\n'
+        '192.168.1.11 "GET /contacto HTTP/1.1" 200\n'
+        '192.168.1.12 "POST /formulario HTTP/1.1" 201',
         encoding="utf-8",
     )
 

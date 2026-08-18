@@ -1,12 +1,10 @@
-from pathlib import Path
-
 import pytest
 
 from core.analizador_logs import (
-    analizar_log,
-    generar_resumen_logs,
     agrupar_eventos_por_ip,
+    analizar_log,
     detectar_fuerza_bruta_por_ip,
+    generar_resumen_logs,
 )
 
 
@@ -15,13 +13,9 @@ def test_analizar_log_detecta_eventos(tmp_path):
     archivo = tmp_path / "access.log"
 
     archivo.write_text(
-        "\n".join(
-            [
-                '192.168.1.10 "GET /index.html HTTP/1.1" 200',
-                "192.168.1.20 Failed login",
-                "192.168.1.30 UNION SELECT username FROM users",
-            ]
-        ),
+        '192.168.1.10 "GET /index.html HTTP/1.1" 200\n'
+        "192.168.1.20 Failed login\n"
+        "192.168.1.30 UNION SELECT username FROM users",
         encoding="utf-8",
     )
 

@@ -8,3 +8,7 @@ stats/estadisticas.json
 
 # Archivos y muestras de cuarentena
 quarantine/
+
+# Cachés de herramientas de desarrollo
+.pytest_cache/
+.ruff_cache/

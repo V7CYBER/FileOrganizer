@@ -4,10 +4,10 @@ def mostrar_error(nombre_archivo, motivo):
     print("⚠ ERROR")
     print("━" * 40)
 
-    print(f"\nArchivo:")
+    print("\nArchivo:")
     print(f"  {nombre_archivo}")
 
-    print(f"\nMotivo:")
+    print("\nMotivo:")
     print(f"  {motivo}")
 
     print("\nEl programa continuará.")

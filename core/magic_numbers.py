@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 MAGIC_NUMBERS = {
     b"\xFF\xD8\xFF": "JPEG",
     b"\x89PNG": "PNG",

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-import core.cuarentena as cuarentena
+from core import cuarentena
 
 
 def preparar_cuarentena_temporal(tmp_path, monkeypatch):

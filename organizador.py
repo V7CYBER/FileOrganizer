@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 
+from datetime import datetime, timezone
 from pathlib import Path
+
 from core.analizador import analizar_carpeta
-from core.clasificador import clasificar_archivos
-from core.movimientos import mover_archivos
-from core.deshacer import deshacer_ultima_organizacion
-from core.mensajes import mostrar_error, mostrar_error_ruta
-from core.duplicados import buscar_duplicados
-from core.duplicados_hash import buscar_duplicados_hash
-from core.seguridad import verificar_archivos, obtener_sospechosos
-from core.cuarentena import poner_en_cuarentena, generar_alerta
 from core.analizador_logs import (
     analizar_log,
-    generar_resumen_logs,
     detectar_fuerza_bruta_temporal,
+    generar_resumen_logs,
 )
-from datetime import datetime
+from core.clasificador import clasificar_archivos
+from core.cuarentena import generar_alerta, poner_en_cuarentena
+from core.deshacer import deshacer_ultima_organizacion
+from core.duplicados import buscar_duplicados
+from core.duplicados_hash import buscar_duplicados_hash
 from core.estadisticas import (
+    calcular_resumen_estadisticas,
+    filtrar_historial,
     guardar_estadisticas,
     leer_estadisticas,
-    calcular_resumen_estadisticas,
-    filtrar_historial
 )
+from core.mensajes import mostrar_error_ruta
+from core.movimientos import mover_archivos
+from core.seguridad import obtener_sospechosos, verificar_archivos
+
 
 def mostrar_alertas_seguridad(sospechosos, simulacion=False):
 
@@ -391,8 +393,9 @@ def mostrar_duplicados_hash():
         for archivo in lista:
 
             fecha = datetime.fromtimestamp(
-                archivo["fecha"]
-            ).strftime("%d/%m/%Y %H:%M:%S")
+                archivo["fecha"],
+                tz=timezone.utc,
+            ).astimezone().strftime("%d/%m/%Y %H:%M:%S")
 
             print(f"Nombre               : {archivo['nombre']}")
             print(f"Ruta                 : {archivo['ruta']}")

@@ -1,6 +1,6 @@
-from pathlib import Path
 import re
-
+from datetime import datetime
+from pathlib import Path
 
 PATRONES_SEGURIDAD = {
     "SQL_INJECTION": [
@@ -226,9 +226,6 @@ def extraer_fecha_log(linea):
     return None
 
 
-from datetime import datetime
-
-
 def convertir_fecha_log(fecha_texto):
     """
     Convierte una fecha de log Apache en datetime.
@@ -237,7 +234,11 @@ def convertir_fecha_log(fecha_texto):
     if fecha_texto is None:
         return None
 
-    return datetime.strptime(
+    # El formato de log analizado no incluye
+    # información de zona horaria.
+    # Se conserva un datetime naive deliberadamente
+    # para la correlación temporal interna.
+    return datetime.strptime(  # noqa: DTZ007
         fecha_texto,
         "%d/%b/%Y:%H:%M:%S",
     )

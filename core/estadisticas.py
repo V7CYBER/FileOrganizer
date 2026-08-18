@@ -1,6 +1,6 @@
-from pathlib import Path
 import json
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 
 
 def guardar_estadisticas(ruta, estadisticas):
@@ -18,7 +18,7 @@ def guardar_estadisticas(ruta, estadisticas):
         historial = []
 
     registro = {
-        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "fecha": datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S"),
         "ruta": str(ruta),
         "analizados": estadisticas["analizados"],
         "movidos": estadisticas["movidos"],

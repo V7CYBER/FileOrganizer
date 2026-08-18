@@ -1,5 +1,5 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 from core.rutas import ARCHIVO_LOG_MOVIMIENTOS
 

@@ -1,11 +1,11 @@
 import pytest
 
 from core.seguridad import (
-    verificar_archivos,
-    obtener_sospechosos,
-    obtener_no_verificados,
-    obtener_archivos_ok,
     generar_resumen_seguridad,
+    obtener_archivos_ok,
+    obtener_no_verificados,
+    obtener_sospechosos,
+    verificar_archivos,
 )
 
 

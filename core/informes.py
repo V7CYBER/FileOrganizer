@@ -1,5 +1,5 @@
+from datetime import datetime, timezone
 from pathlib import Path
-from datetime import datetime
 
 
 def generar_informe_duplicados(carpeta, duplicados):
@@ -7,7 +7,7 @@ def generar_informe_duplicados(carpeta, duplicados):
     carpeta_reports = Path("reports")
     carpeta_reports.mkdir(exist_ok=True)
 
-    fecha = datetime.now()
+    fecha = datetime.now(timezone.utc).astimezone()
 
     nombre_archivo = (
         f"duplicados_{fecha.strftime('%Y%m%d_%H%M%S')}.txt"
@@ -83,8 +83,9 @@ def generar_informe_duplicados(carpeta, duplicados):
         for numero, archivo in enumerate(lista, start=1):
 
             fecha_archivo = datetime.fromtimestamp(
-                archivo["fecha"]
-            ).strftime("%d/%m/%Y %H:%M:%S")
+                archivo["fecha"],
+                tz=timezone.utc,
+            ).astimezone().strftime("%d/%m/%Y %H:%M:%S")
 
             lineas.append(f"{numero}. {archivo['nombre']}")
             lineas.append(f"   Ruta: {archivo['ruta']}")

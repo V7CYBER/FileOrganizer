@@ -1,5 +1,3 @@
-import pytest
-
 from core.verificador import verificar_archivo
 
 

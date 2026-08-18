@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 
 from core.analizador_logs import (
-    extraer_fecha_log,
     convertir_fecha_log,
+    extraer_fecha_log,
 )
 
 
@@ -42,7 +42,9 @@ def test_convertir_fecha_log_valida():
     resultado = convertir_fecha_log(fecha_texto)
 
     # ASSERT
-    assert resultado == datetime(
+    # El resultado esperado es naive porque
+    # el log de origen no contiene zona horaria.
+    assert resultado == datetime(  # noqa: DTZ001
         2026,
         8,
         16,

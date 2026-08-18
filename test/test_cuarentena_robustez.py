@@ -1,6 +1,4 @@
-from pathlib import Path
-
-import core.cuarentena as cuarentena
+from core import cuarentena
 
 
 def configurar_cuarentena_temporal(tmp_path, monkeypatch):

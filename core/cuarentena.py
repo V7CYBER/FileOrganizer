@@ -1,9 +1,8 @@
-from datetime import datetime
-from pathlib import Path
 import shutil
+from datetime import datetime, timezone
+from pathlib import Path
 
 from core.rutas import PROYECTO
-
 
 CUARENTENA = PROYECTO / "quarantine"
 REGISTRO_CUARENTENA = CUARENTENA / "alertas.log"
@@ -40,7 +39,7 @@ def poner_en_cuarentena(
 
     shutil.move(str(ruta), str(destino))
 
-    fecha = datetime.now().strftime(
+    fecha = datetime.now(timezone.utc).astimezone().strftime(
         "%Y-%m-%d %H:%M:%S"
     )
 

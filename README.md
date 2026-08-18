@@ -885,3 +885,854 @@ La versión v3.1 fue validada mediante:
 python3 -m py_compile core/*.py organizador.py
 git diff --check
 git diff --cached --check
+```
+
+### Resultado
+
+La versión v3.1 incorporó una primera capa de seguridad defensiva al proyecto, ampliando FileOrganizer más allá de la organización de archivos.
+
+El proyecto permite:
+
+- verificar el tipo real de determinados archivos mediante magic numbers;
+- detectar discrepancias entre extensión y contenido;
+- identificar archivos potencialmente sospechosos;
+- trasladarlos a una zona de cuarentena controlada;
+- registrar alertas de seguridad;
+- analizar archivos de logs;
+- detectar patrones relacionados con SQL Injection;
+- detectar fallos de autenticación;
+- extraer y validar direcciones IPv4;
+- agrupar eventos por dirección IP;
+- detectar posibles ataques de fuerza bruta;
+- correlacionar eventos dentro de una ventana temporal.
+
+Estas funcionalidades establecen la base para continuar desarrollando FileOrganizer como proyecto orientado no solo a Python y automatización, sino también a ciberseguridad defensiva.
+
+---
+
+## v3.2
+
+### Objetivo técnico
+
+La versión v3.2 introduce una nueva etapa en el desarrollo de FileOrganizer centrada en la calidad, robustez y mantenibilidad del código.
+
+Hasta esta versión, las funcionalidades del proyecto se validaban principalmente mediante pruebas manuales y comprobaciones de integración. En v3.2 se incorpora testing automático con `pytest` y análisis estático con `Ruff`, permitiendo verificar de forma repetible tanto el comportamiento del programa como determinados aspectos de calidad del código.
+
+El objetivo principal de esta versión no ha sido añadir una gran funcionalidad visible para el usuario, sino reforzar técnicamente el proyecto mediante:
+
+- pruebas automatizadas;
+- pruebas de casos límite y condiciones de error;
+- pruebas de robustez del sistema de archivos;
+- validación de la capa de seguridad;
+- validación del analizador de logs;
+- refactorización controlada del flujo principal;
+- análisis estático del código;
+- mejora del tratamiento de excepciones;
+- revisión del manejo de fechas y zonas horarias;
+- limpieza y normalización del entorno de desarrollo.
+
+Este proceso permite detectar regresiones y errores de forma temprana y proporciona una base más segura para continuar ampliando FileOrganizer en versiones posteriores.
+### Cambios realizados
+
+1. **Introducción de testing automático con pytest**
+
+   Se incorporó `pytest` como framework de testing del proyecto.
+
+   El objetivo fue sustituir progresivamente la dependencia de pruebas manuales por una batería automatizada capaz de verificar el comportamiento del código después de cada modificación.
+
+   Los tests se almacenan en:
+
+   `test/`
+
+   Durante el desarrollo de v3.2 la batería alcanzó:
+
+   `101 passed`
+
+   Esto permite ejecutar una validación completa mediante:
+
+   ```bash
+   python -m pytest test/
+   ```
+
+2. **Tests de identificación mediante magic numbers**
+
+   Se crearon pruebas para verificar `core/magic_numbers.py`.
+
+   La batería comprueba la identificación de firmas correspondientes a distintos formatos, entre ellos:
+
+   - JPEG;
+   - PNG;
+   - GIF;
+   - PDF;
+   - ZIP;
+   - GZIP;
+   - ELF;
+   - ejecutables PE/Windows.
+
+   También se añadieron casos para:
+
+   - archivos desconocidos;
+   - archivos vacíos;
+   - archivos inexistentes;
+   - firmas incompletas;
+   - archivos de un solo byte;
+   - nombres Unicode y espacios;
+   - directorios utilizados incorrectamente como archivos.
+
+3. **Tests del verificador de archivos**
+
+   Se automatizó la validación de `core/verificador.py`.
+
+   Las pruebas verifican situaciones como:
+
+   - archivos cuya extensión coincide con su tipo real;
+   - archivos JPEG válidos;
+   - ejecutables con extensión `.jpg`;
+   - archivos PDF disfrazados de ejecutables;
+   - extensiones no verificadas;
+   - extensiones en mayúsculas;
+   - archivos sin extensión;
+   - archivos vacíos;
+   - nombres Unicode;
+   - archivos con múltiples extensiones.
+
+4. **Tests de la capa de seguridad**
+
+   Se añadieron pruebas para `core/seguridad.py` destinadas a comprobar:
+
+   - análisis de archivos;
+   - exclusión de subdirectorios;
+   - tratamiento de rutas inexistentes;
+   - tratamiento de rutas que no son directorios;
+   - filtrado de resultados según su estado;
+   - generación de resúmenes de seguridad.
+
+5. **Tests del sistema de cuarentena**
+
+   Se automatizó la validación de `core/cuarentena.py`.
+
+   Entre los escenarios comprobados se encuentran:
+
+   - traslado de archivos a cuarentena;
+   - registro de la operación;
+   - prevención de colisiones de nombres;
+   - múltiples colisiones consecutivas;
+   - archivos inexistentes;
+   - archivos sin extensión;
+   - nombres Unicode y espacios;
+   - prevención de sobrescrituras;
+   - múltiples entradas en el registro de cuarentena.
+
+6. **Pruebas de robustez del sistema de archivos**
+
+   Se incorporaron casos destinados a comprobar el comportamiento ante situaciones menos habituales del sistema de archivos.
+
+   Se validaron escenarios relacionados con:
+
+   - enlaces simbólicos válidos;
+   - enlaces simbólicos rotos;
+   - archivos eliminados antes de ser procesados;
+   - archivos sin permisos de lectura;
+   - directorios sin permisos suficientes.
+
+   Estas pruebas permiten verificar no solo el funcionamiento esperado del programa, sino también su comportamiento frente a condiciones anómalas del entorno.
+7. **Tests del analizador de logs**
+
+   Se añadió una batería específica para `core/analizador_logs.py`.
+
+   Los tests validan la detección de patrones relacionados con SQL Injection, entre ellos:
+
+   - `UNION SELECT`;
+   - `OR 1=1`;
+   - `AND 1=1`;
+   - comparaciones sospechosas mediante `OR`;
+   - `SLEEP()`;
+   - `BENCHMARK()`;
+   - `DROP TABLE`;
+   - `information_schema`.
+
+   También se validaron eventos relacionados con autenticación fallida:
+
+   - `Failed password`;
+   - `Failed login`;
+   - `Authentication failure`;
+   - `Invalid user`;
+   - `Maximum authentication attempts`;
+   - `Too many authentication failures`.
+
+8. **Corrección de un patrón SQL mediante testing**
+
+   Durante la ejecución de la nueva batería automatizada se detectó que el patrón:
+
+   `OR 'a' = 'a'`
+
+   no era identificado correctamente.
+
+   El fallo estaba relacionado con una frontera de palabra `\b` situada al final de la expresión regular.
+
+   El test permitió reproducir el problema de forma automática, corregir la expresión regular y comprobar posteriormente que toda la batería seguía funcionando.
+
+   Este caso demostró de forma práctica el valor del testing automático para detectar errores que podían pasar desapercibidos durante las pruebas manuales.
+
+9. **Tests de extracción y validación IPv4**
+
+   Se añadieron pruebas para comprobar la extracción de direcciones IPv4.
+
+   Se validaron:
+
+   - direcciones privadas habituales;
+   - dirección mínima `0.0.0.0`;
+   - dirección máxima `255.255.255.255`;
+   - octetos fuera de rango;
+   - líneas sin dirección IP;
+   - múltiples direcciones en una misma línea.
+
+   Cuando existen varias IP en una línea, el analizador devuelve la primera dirección válida encontrada.
+
+10. **Tests de fechas de logs**
+
+    Se automatizaron pruebas para:
+
+    - extracción de fechas en formato Apache;
+    - líneas sin timestamp;
+    - conversión de texto a `datetime`;
+    - entrada `None`;
+    - formatos de fecha inválidos.
+
+    El formato analizado actualmente no incluye información de zona horaria.
+
+    Por este motivo, la función de conversión conserva de forma deliberada un `datetime` sin zona horaria para la correlación interna de eventos.
+
+11. **Tests de correlación de fuerza bruta**
+
+    Se validó automáticamente la correlación temporal de eventos de autenticación fallida.
+
+    Entre los escenarios comprobados se encuentran:
+
+    - tres intentos desde la misma IP dentro de una ventana temporal;
+    - intentos separados durante demasiado tiempo;
+    - intentos distribuidos entre distintas IP;
+    - número de intentos inferior al umbral;
+    - eventos sin información temporal.
+
+    La detección positiva validada utiliza:
+
+    - umbral: `3`;
+    - ventana máxima: `60 segundos`.
+
+    En el escenario de prueba, tres intentos realizados en una ventana real de `2.0 segundos` generan una alerta:
+
+    `POSIBLE_FUERZA_BRUTA`
+
+12. **Tests de funciones auxiliares del analizador**
+
+    También se añadieron pruebas directas para:
+
+    - `analizar_log()`;
+    - `generar_resumen_logs()`;
+    - `agrupar_eventos_por_ip()`;
+    - `detectar_fuerza_bruta_por_ip()`.
+
+    Se comprobaron además casos como:
+
+    - archivo de log inexistente;
+    - ruta que no representa un archivo;
+    - log vacío;
+    - tráfico legítimo sin eventos de seguridad;
+    - contenido con bytes no válidos en UTF-8.
+
+    El analizador utiliza `errors="replace"` durante la lectura, permitiendo continuar el procesamiento de un log aunque contenga determinados bytes no válidos.
+13. **Refactorización controlada de `organizador.py`**
+
+    Durante v3.2 se redujo progresivamente la responsabilidad de `seleccionar_carpeta()`.
+
+    Se extrajeron funciones específicas para separar presentación y flujo:
+
+    - `mostrar_alertas_seguridad()`;
+    - `mostrar_analisis_carpeta()`;
+    - `mostrar_clasificacion()`;
+    - `enviar_sospechosos_cuarentena()`.
+
+    El objetivo fue mejorar la legibilidad, mantenibilidad y capacidad de testeo sin alterar el comportamiento general del programa.
+
+    Cada extracción se realizó de forma incremental y se validó ejecutando la batería completa de tests después de cada cambio.
+
+14. **Uso de `capsys` para validar salida por pantalla**
+
+    Se incorporó la fixture `capsys` de `pytest` para comprobar funciones que utilizan `print()`.
+
+    Esto permitió validar automáticamente:
+
+    - mensajes de alerta;
+    - información de análisis de carpeta;
+    - clasificación prevista;
+    - mensajes específicos del modo simulación;
+    - salida generada durante operaciones de cuarentena.
+
+    De esta forma, la salida de consola también pasa a formar parte del comportamiento comprobable del programa.
+
+15. **Uso de `monkeypatch` para aislar dependencias**
+
+    Se utilizó `monkeypatch` para sustituir temporalmente dependencias durante los tests.
+
+    Entre otros casos, permitió:
+
+    - redirigir la cuarentena real hacia directorios temporales;
+    - sustituir `poner_en_cuarentena()` por una función controlada;
+    - simular errores durante `shutil.move()`;
+    - comprobar llamadas sin modificar archivos reales del proyecto.
+
+    Esto permite probar funciones con efectos secundarios de forma aislada y segura.
+
+16. **Uso de `tmp_path` para pruebas del sistema de archivos**
+
+    La fixture `tmp_path` se utilizó para generar directorios temporales independientes para cada test.
+
+    Gracias a ello se pudieron comprobar operaciones reales sobre archivos sin utilizar rutas permanentes ni contaminar el entorno del proyecto.
+
+    Se aplicó en pruebas relacionadas con:
+
+    - creación de archivos;
+    - eliminación;
+    - cuarentena;
+    - permisos;
+    - enlaces simbólicos;
+    - logs;
+    - archivos sospechosos.
+
+17. **Detección de una recursión accidental durante el refactor**
+
+    Durante la extracción de `mostrar_analisis_carpeta()` se introdujo accidentalmente una llamada recursiva:
+
+    ```python
+    def mostrar_analisis_carpeta(datos):
+        mostrar_analisis_carpeta(datos)
+    ```
+
+    Los tests específicos detectaron inmediatamente el problema mediante:
+
+    `RecursionError: maximum recursion depth exceeded`
+
+    La función fue corregida y la batería completa volvió a quedar en estado correcto.
+
+    Este caso demostró el valor de disponer de tests de regresión mientras se modifica la arquitectura de código existente.
+
+18. **Mejora del tratamiento de excepciones en movimientos**
+
+    Ruff detectó la regla:
+
+    `BLE001`
+
+    debido al uso de:
+
+    ```python
+    except Exception as error:
+    ```
+
+    en `core/movimientos.py`.
+
+    Antes de eliminar este bloque se creó un test específico que simulaba un `RuntimeError` inesperado.
+
+    El comportamiento inicial fue:
+
+    `FAILED: DID NOT RAISE RuntimeError`
+
+    Esto confirmó que el `except Exception` estaba ocultando errores que podían corresponder a defectos de programación.
+
+    Tras eliminar el manejador genérico:
+
+    - `PermissionError` continúa gestionándose;
+    - `FileNotFoundError` continúa gestionándose;
+    - `OSError` continúa gestionándose;
+    - las excepciones inesperadas se propagan correctamente.
+
+    El nuevo comportamiento quedó protegido mediante:
+
+    `test/test_movimientos_robustez.py`
+19. **Introducción de análisis estático con Ruff**
+
+    Se incorporó `Ruff` como herramienta de análisis estático y calidad de código.
+
+    La versión utilizada durante el desarrollo de v3.2 fue:
+
+    `ruff 0.16.3`
+
+    La primera revisión completa del proyecto detectó:
+
+    `37 avisos`
+
+    En lugar de aplicar una corrección automática masiva, los avisos se revisaron progresivamente por categorías.
+
+    El procedimiento utilizado fue:
+
+    1. seleccionar una regla concreta;
+    2. revisar los archivos afectados;
+    3. comprender el motivo del aviso;
+    4. realizar únicamente las modificaciones necesarias;
+    5. ejecutar los tests;
+    6. comprobar la compilación;
+    7. ejecutar `git diff --check`;
+    8. continuar con la siguiente categoría.
+
+    Este procedimiento permitió utilizar el análisis estático como herramienta de aprendizaje y revisión técnica, evitando modificaciones automáticas cuyo impacto no hubiera sido previamente comprendido.
+
+20. **Eliminación de imports no utilizados — F401**
+
+    La regla:
+
+    `F401`
+
+    detectó imports que habían quedado sin utilizar después de diferentes etapas de desarrollo y refactorización.
+
+    Se localizaron inicialmente cuatro casos:
+
+    - `mostrar_error` en `organizador.py`;
+    - `Path` en `test/test_analizador_logs_funciones.py`;
+    - `Path` en `test/test_cuarentena_robustez.py`;
+    - `pytest` en `test/test_verificador_robustez.py`.
+
+    Los imports fueron eliminados manualmente y posteriormente se comprobó:
+
+    `All checks passed!`
+
+    La batería completa continuó funcionando con:
+
+    `100 passed`
+
+21. **Corrección de f-strings innecesarios — F541**
+
+    Ruff detectó mediante la regla:
+
+    `F541`
+
+    dos cadenas marcadas como f-string que no contenían ninguna interpolación.
+
+    En `core/mensajes.py` se sustituyeron expresiones como:
+
+    ```python
+    print(f"\nArchivo:")
+    ```
+
+    por:
+
+    ```python
+    print("\nArchivo:")
+    ```
+
+    y se realizó la misma corrección para el mensaje `Motivo:`.
+
+    El cambio no modifica el comportamiento del programa, pero elimina sintaxis innecesaria y mejora la claridad del código.
+
+22. **Normalización de imports — I001**
+
+    La regla:
+
+    `I001`
+
+    permitió detectar bloques de imports desordenados o con un formato no normalizado.
+
+    Inicialmente se localizaron:
+
+    `17 errores`
+
+    La corrección se realizó en dos tandas controladas:
+
+    - módulos de `core/` y `organizador.py`;
+    - archivos de tests.
+
+    Entre las mejoras realizadas se encuentran:
+
+    - orden correcto de módulos de la biblioteca estándar;
+    - separación entre biblioteca estándar e imports internos;
+    - ordenación de nombres importados;
+    - simplificación de imports multilínea cuando era apropiado;
+    - eliminación de líneas en blanco innecesarias.
+
+    Después de ambas tandas:
+
+    `All checks passed!`
+
+    y la batería completa continuó mostrando:
+
+    `100 passed`
+
+23. **Normalización de imports de módulos — PLR0402**
+
+    Ruff detectó varios imports realizados mediante alias innecesarios, por ejemplo:
+
+    ```python
+    import core.cuarentena as cuarentena
+    ```
+
+    Se sustituyeron por la forma recomendada:
+
+    ```python
+    from core import cuarentena
+    ```
+
+    La misma revisión se aplicó al módulo de movimientos utilizado por los tests.
+
+    Los cambios fueron validados nuevamente mediante la batería completa.
+
+24. **Simplificación de construcción de texto en tests — FLY002**
+
+    Ruff detectó construcciones basadas en:
+
+    ```python
+    "\n".join([...])
+    ```
+
+    que podían expresarse de forma más directa en los datos de prueba.
+
+    Los casos afectados se encontraban en:
+
+    - `test/test_analizador_logs_funciones.py`;
+    - `test/test_analizador_logs_robustez.py`.
+
+    Después de la modificación se ejecutaron primero los tests directamente afectados.
+
+    Resultado:
+
+    `10 passed`
+
+    Posteriormente se ejecutó la batería completa:
+
+    `101 passed`
+
+25. **Validación del shebang y permisos de ejecución — EXE001**
+
+    `organizador.py` contiene:
+
+    ```bash
+    #!/usr/bin/env python3
+    ```
+
+    Ruff detectó mediante:
+
+    `EXE001`
+
+    que el archivo incluía un shebang pero no tenía establecido el permiso de ejecución.
+
+    Se corrigieron los permisos del archivo, pasando en Git de:
+
+    `100644`
+
+    a:
+
+    `100755`
+
+    De esta forma existe coherencia entre el shebang declarado y los permisos reales del programa.
+
+26. **Revisión de fechas y zonas horarias — reglas DTZ**
+
+    Ruff detectó varios usos de `datetime` sin información explícita de zona horaria.
+
+    Se revisaron individualmente los casos presentes en:
+
+    - `core/cuarentena.py`;
+    - `core/estadisticas.py`;
+    - `core/informes.py`;
+    - `core/logger.py`;
+    - `organizador.py`;
+    - `core/analizador_logs.py`;
+    - tests relacionados con fechas.
+
+    Para fechas que representan momentos reales del sistema se adoptó un manejo consciente de zona horaria.
+
+    Por ejemplo:
+
+    ```python
+    datetime.now(timezone.utc).astimezone()
+    ```
+
+    y los timestamps Unix se convierten proporcionando explícitamente información de zona horaria cuando corresponde.
+
+27. **Excepción deliberada para fechas de logs sin zona horaria**
+
+    El formato de log analizado actualmente por `core/analizador_logs.py` utiliza fechas como:
+
+    `16/Aug/2026:09:01:16`
+
+    Este formato no contiene información sobre zona horaria.
+
+    Por este motivo, convertir automáticamente esa fecha a UTC o a otra zona introduciría información que no existe en el dato original.
+
+    Se decidió conservar deliberadamente un `datetime` sin zona horaria para esta correlación temporal interna.
+
+    La decisión quedó documentada directamente en el código mediante:
+
+    ```python
+    # noqa: DTZ007
+    ```
+
+    El test correspondiente mantiene igualmente un `datetime` sin zona horaria de forma deliberada mediante:
+
+    ```python
+    # noqa: DTZ001
+    ```
+
+    De esta forma no se ignora globalmente la regla: se documenta una excepción concreta cuya razón técnica ha sido revisada.
+
+28. **Resultado final del análisis estático**
+
+    Después de revisar y corregir progresivamente las diferentes categorías, se ejecutó Ruff sobre el proyecto completo.
+
+    Resultado final:
+
+    ```text
+    All checks passed!
+    ```
+
+    La validación se realizó conjuntamente con:
+
+    ```bash
+    python -m pytest test/ -q
+    python3 -m py_compile core/*.py organizador.py
+    git diff --check
+    ```
+
+    Resultado de pytest:
+
+    ```text
+    101 passed
+    ```
+
+    Por tanto, la limpieza realizada mediante análisis estático no introdujo regresiones detectadas por la batería automatizada.
+
+29. **Separación de dependencias del proyecto**
+
+    Durante la revisión final de v3.2 se comprobó que el archivo destinado a las dependencias tenía el nombre:
+
+    `requeriments.txt`
+
+    Se corrigió a la convención estándar:
+
+    `requirements.txt`
+
+    Actualmente FileOrganizer no necesita dependencias externas para ejecutar su funcionalidad principal, por lo que este archivo permanece vacío.
+
+    Las herramientas utilizadas exclusivamente durante el desarrollo se separaron en:
+
+    `requirements-dev.txt`
+
+    con el contenido:
+
+    ```text
+    pytest==9.1.1
+    ruff==0.16.3
+    ```
+
+    Esta separación diferencia las dependencias necesarias para ejecutar la aplicación de las herramientas necesarias para desarrollar, probar y analizar el proyecto.
+
+30. **Mejora de `.gitignore`**
+
+    Durante las ejecuciones de pytest y Ruff se generan automáticamente directorios de caché:
+
+    `.pytest_cache/`
+
+    `.ruff_cache/`
+
+    Se añadieron ambos a `.gitignore`.
+
+    El proyecto ya excluía además elementos que no deben incorporarse normalmente al repositorio:
+
+    - `.venv/`;
+    - `__pycache__/`;
+    - archivos `*.pyc`;
+    - `.vscode/`;
+    - logs generados;
+    - informes generados;
+    - estadísticas generadas;
+    - archivos y muestras almacenados en `quarantine/`.
+
+31. **Entorno de desarrollo utilizado**
+
+    La validación final de v3.2 se realizó utilizando:
+
+    ```text
+    Python 3.14.4
+    pytest 9.1.1
+    Ruff 0.16.3
+    ```
+
+    Las herramientas de desarrollo se ejecutan desde el entorno virtual `.venv`.
+
+    Un entorno equivalente puede instalar las herramientas de desarrollo mediante:
+
+    ```bash
+    python -m pip install -r requirements-dev.txt
+    ```
+
+32. **Crecimiento de la batería automatizada**
+
+    La primera batería consolidada de v3.2 alcanzó:
+
+    `100 tests`
+
+    distribuidos inicialmente en:
+
+    `19 archivos`
+
+    Durante la revisión con Ruff se detectó el uso de un manejador excesivamente genérico:
+
+    ```python
+    except Exception
+    ```
+
+    Antes de modificarlo se añadió un nuevo test de regresión:
+
+    `test/test_movimientos_robustez.py`
+
+    Este nuevo test elevó la batería final a:
+
+    `101 tests`
+
+    y el número de archivos de test a:
+
+    `20`
+
+    Esto demuestra que el análisis estático no se utilizó únicamente para modificar estilo: uno de sus avisos condujo a revisar un comportamiento real del programa y a proteger la corrección mediante un nuevo test automatizado.
+
+### Pruebas realizadas
+
+La versión v3.2 fue sometida de forma continua a pruebas durante todo su desarrollo.
+
+La batería automatizada final se ejecutó mediante:
+
+```bash
+python -m pytest test/ -q
+```
+
+Resultado:
+
+```text
+101 passed
+```
+
+El análisis estático completo se realizó mediante Ruff.
+
+Resultado:
+
+```text
+All checks passed!
+```
+
+También se comprobó que los módulos principales continuaban compilando correctamente:
+
+```bash
+python3 -m py_compile core/*.py organizador.py
+```
+
+y se verificó la limpieza formal de los cambios mediante:
+
+```bash
+git diff --check
+```
+
+Durante el desarrollo no se esperó hasta el final para ejecutar estas comprobaciones.
+
+Después de cada grupo de modificaciones se ejecutaron los tests afectados y posteriormente la batería completa, siguiendo un ciclo aproximado de:
+
+```text
+modificación
+    ↓
+test específico
+    ↓
+batería completa
+    ↓
+Ruff
+    ↓
+compilación
+    ↓
+git diff --check
+```
+
+### Competencias adquiridas
+
+El desarrollo de v3.2 permitió trabajar de forma práctica conceptos relacionados con calidad de software y testing.
+
+Entre ellos:
+
+- fundamentos de testing automatizado con `pytest`;
+- estructura Arrange / Act / Assert;
+- diseño de casos positivos y negativos;
+- pruebas de casos límite;
+- pruebas de regresión;
+- uso de `tmp_path`;
+- uso de `capsys`;
+- uso de `monkeypatch`;
+- uso de `pytest.raises`;
+- uso de `pytest.mark.parametrize`;
+- simulación controlada de errores;
+- testing de operaciones sobre el sistema de archivos;
+- testing de código relacionado con seguridad;
+- validación automatizada de expresiones regulares;
+- testing de extracción y validación de IPv4;
+- testing de correlación temporal;
+- análisis estático con Ruff;
+- interpretación de reglas de linting;
+- corrección incremental frente a corrección automática masiva;
+- organización y limpieza de imports;
+- revisión del tratamiento de excepciones;
+- diferencia entre excepciones esperadas y errores inesperados;
+- conceptos de `datetime` naive y timezone-aware;
+- documentación de excepciones deliberadas mediante `noqa`;
+- gestión de permisos ejecutables en Git;
+- separación de dependencias de ejecución y desarrollo;
+- mantenimiento de `.gitignore`;
+- refactorización respaldada por tests.
+
+### Resultado
+
+La versión v3.2 transforma la forma en la que FileOrganizer puede continuar evolucionando.
+
+El proyecto ya no depende únicamente de pruebas manuales para comprobar que sus funcionalidades siguen funcionando.
+
+Dispone de una batería automatizada capaz de validar áreas como:
+
+- identificación de archivos mediante magic numbers;
+- verificación de extensión y contenido;
+- capa de seguridad;
+- cuarentena;
+- sistema de archivos;
+- permisos;
+- análisis de logs;
+- detección de patrones de seguridad;
+- IPv4;
+- fechas;
+- correlación temporal;
+- fuerza bruta;
+- funciones extraídas del flujo principal;
+- tratamiento de errores durante movimientos.
+
+La batería final alcanza:
+
+```text
+101 passed
+```
+
+y el análisis estático del proyecto finaliza con:
+
+```text
+All checks passed!
+```
+
+Además, la refactorización de `organizador.py` ha comenzado a separar responsabilidades anteriormente concentradas en el flujo principal, facilitando su comprensión y testing.
+
+La eliminación del manejador genérico `except Exception` constituye también una mejora de robustez: los errores esperados continúan siendo gestionados, mientras que errores inesperados ya no quedan ocultos.
+
+Con v3.2, FileOrganizer incorpora una base de control de calidad formada por:
+
+```text
+Código
+  │
+  ├── pytest ─────► comportamiento
+  │
+  ├── Ruff ───────► análisis estático
+  │
+  ├── py_compile ─► validación sintáctica
+  │
+  └── Git ────────► control y trazabilidad
+```
+
+Esta versión establece una base más sólida para desarrollar las siguientes funcionalidades del proyecto con mayor seguridad frente a regresiones.

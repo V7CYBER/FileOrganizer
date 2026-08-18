@@ -1,5 +1,6 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
+
 from core.logger import guardar_log
 from core.mensajes import mostrar_error
 
@@ -98,14 +99,6 @@ def mover_archivos(clasificacion, ruta):
                     f"Error del sistema: {error}"
                 )
 
-            except Exception as error:
-
-                estadisticas["omitidos"] += 1
-
-                mostrar_error(
-                    nombre,
-                    f"Error inesperado: {error}"
-                )
       
 
     return estadisticas

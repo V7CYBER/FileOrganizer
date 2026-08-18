@@ -1,6 +1,5 @@
 from pathlib import Path
 
-
 PROYECTO = Path(__file__).resolve().parent.parent
 
 CONFIGURACION = PROYECTO / "config.json"

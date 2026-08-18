@@ -2,7 +2,6 @@ from pathlib import Path
 
 from core.magic_numbers import identificar_tipo_real
 
-
 EXTENSIONES_ESPERADAS = {
     ".jpg": {"JPEG"},
     ".jpeg": {"JPEG"},

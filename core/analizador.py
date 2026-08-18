@@ -1,9 +1,6 @@
 from pathlib import Path
 
-from core.configuracion import (
-    cargar_configuracion,
-    obtener_carpetas_ignoradas
-)
+from core.configuracion import cargar_configuracion, obtener_carpetas_ignoradas
 
 
 def analizar_carpeta(ruta):
