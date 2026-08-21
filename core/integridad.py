@@ -15,10 +15,17 @@ def generar_snapshot(carpeta):
     archivos = {}
 
     for archivo in ruta_base.rglob("*"):
+        if archivo.is_symlink():
+            continue
+
         if archivo.is_file():
             ruta_relativa = archivo.relative_to(ruta_base)
 
-            archivos[str(ruta_relativa)] = calcular_sha256(archivo)
+            try:
+                archivos[str(ruta_relativa)] = calcular_sha256(archivo)
+
+            except FileNotFoundError:
+                continue
 
     return {
         "ruta_base": str(ruta_base),

@@ -12,3 +12,6 @@ quarantine/
 # Cachés de herramientas de desarrollo
 .pytest_cache/
 .ruff_cache/
+
+# Baselines del monitor de integridad
+baselines/

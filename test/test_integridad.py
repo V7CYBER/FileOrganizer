@@ -439,3 +439,39 @@ def test_cargar_baseline_archivos_tipo_invalido(tmp_path):
     # ACT / ASSERT
     with pytest.raises(TypeError):
         cargar_baseline(ruta)
+
+
+def test_generar_snapshot_archivo_desaparece_durante_hash(tmp_path, monkeypatch):
+    # ARRANGE
+    archivo = tmp_path / "temporal.txt"
+    archivo.write_bytes(b"contenido temporal")
+
+    def hash_simulado(ruta):
+        raise FileNotFoundError(f"Archivo desaparecido: {ruta}")
+
+    monkeypatch.setattr(
+        "core.integridad.calcular_sha256",
+        hash_simulado,
+    )
+
+    # ACT
+    snapshot = generar_snapshot(tmp_path)
+
+    # ASSERT
+    assert snapshot["archivos"] == {}
+
+
+def test_generar_snapshot_ignora_symlink(tmp_path):
+    # ARRANGE
+    real = tmp_path / "real.txt"
+    real.write_bytes(b"contenido real")
+
+    enlace = tmp_path / "enlace.txt"
+    enlace.symlink_to(real)
+
+    # ACT
+    snapshot = generar_snapshot(tmp_path)
+
+    # ASSERT
+    assert "real.txt" in snapshot["archivos"]
+    assert "enlace.txt" not in snapshot["archivos"]
