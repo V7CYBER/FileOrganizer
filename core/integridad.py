@@ -93,6 +93,10 @@ def cargar_baseline(ruta):
     if not isinstance(baseline["archivos"], dict):
         raise TypeError("'archivos' debe ser un diccionario.")
 
+    for hash_archivo in baseline["archivos"].values():
+        if not isinstance(hash_archivo, str):
+            raise TypeError("Los hashes de 'archivos' deben ser cadenas de texto.")
+
     return baseline
 
 

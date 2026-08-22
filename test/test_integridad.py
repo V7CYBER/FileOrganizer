@@ -475,3 +475,24 @@ def test_generar_snapshot_ignora_symlink(tmp_path):
     # ASSERT
     assert "real.txt" in snapshot["archivos"]
     assert "enlace.txt" not in snapshot["archivos"]
+
+
+def test_cargar_baseline_hash_tipo_invalido(tmp_path):
+    # ARRANGE
+    ruta = tmp_path / "baseline.json"
+
+    ruta.write_text(
+        json.dumps(
+            {
+                "ruta_base": "/home/wakan/Documentos",
+                "archivos": {
+                    "factura.pdf": 123,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    # ACT / ASSERT
+    with pytest.raises(TypeError):
+        cargar_baseline(ruta)
