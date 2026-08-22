@@ -154,7 +154,7 @@ def test_cargar_baseline_valida(tmp_path):
     snapshot = {
         "ruta_base": "/home/wakan/Documentos",
         "archivos": {
-            "factura.pdf": "AAA111",
+            "factura.pdf": "a" * 64,
         },
     }
 
@@ -495,4 +495,25 @@ def test_cargar_baseline_hash_tipo_invalido(tmp_path):
 
     # ACT / ASSERT
     with pytest.raises(TypeError):
+        cargar_baseline(ruta)
+
+
+def test_cargar_baseline_hash_formato_invalido(tmp_path):
+    # ARRANGE
+    ruta = tmp_path / "baseline.json"
+
+    ruta.write_text(
+        json.dumps(
+            {
+                "ruta_base": "/home/wakan/Documentos",
+                "archivos": {
+                    "factura.pdf": "HASH_INVALIDO",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    # ACT / ASSERT
+    with pytest.raises(ValueError):
         cargar_baseline(ruta)

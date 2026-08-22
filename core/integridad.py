@@ -97,6 +97,11 @@ def cargar_baseline(ruta):
         if not isinstance(hash_archivo, str):
             raise TypeError("Los hashes de 'archivos' deben ser cadenas de texto.")
 
+        if len(hash_archivo) != 64 or any(
+            caracter not in "0123456789abcdef" for caracter in hash_archivo.lower()
+        ):
+            raise ValueError("Los hashes de 'archivos' deben ser SHA-256 válidos.")
+
     return baseline
 
 
