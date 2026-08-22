@@ -90,6 +90,9 @@ def cargar_baseline(ruta):
     if not isinstance(baseline["ruta_base"], str):
         raise TypeError("'ruta_base' debe ser una cadena de texto.")
 
+    if not baseline["ruta_base"].strip():
+        raise ValueError("'ruta_base' no puede estar vacía.")
+
     if not isinstance(baseline["archivos"], dict):
         raise TypeError("'archivos' debe ser un diccionario.")
 
