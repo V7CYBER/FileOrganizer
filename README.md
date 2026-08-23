@@ -632,9 +632,7 @@ El commit fue publicado correctamente en GitHub mediante `git push`.
 * Mantenimiento de compatibilidad con funcionalidades existentes.
 * Flujo completo de desarrollo, pruebas, commit y publicación mediante Git.
 
-cd ~/CyberLab/04_Proyectos/FileOrganizer
 
-cat >> README.md <<'EOF'
 
 ## v3.1
 
@@ -1736,3 +1734,492 @@ Código
 ```
 
 Esta versión establece una base más sólida para desarrollar las siguientes funcionalidades del proyecto con mayor seguridad frente a regresiones.
+
+---
+
+## v3.3
+
+### Objetivo técnico
+
+La versión v3.3 incorpora un Monitor de Integridad de Archivos (FIM, File Integrity Monitoring) a FileOrganizer.
+
+El objetivo de esta versión es permitir establecer un estado de referencia de una carpeta mediante hashes SHA-256 y comparar posteriormente ese estado con el contenido actual del sistema de archivos.
+
+Esta funcionalidad acerca FileOrganizer a un caso de uso real de ciberseguridad defensiva, donde los cambios inesperados sobre archivos pueden constituir indicadores de modificación, eliminación o incorporación de contenido.
+
+El desarrollo de v3.3 se ha realizado siguiendo un enfoque incremental basado en TDD:
+
+```text
+RED
+ ↓
+GREEN
+ ↓
+Refactor
+ ↓
+Batería completa
+```
+
+### Cambios realizados
+
+1. **Nuevo módulo de integridad**
+
+   Se añadió:
+
+   `core/integridad.py`
+
+   El módulo centraliza la lógica relacionada con el monitor de integridad.
+
+   Sus funciones principales permiten:
+
+   - generar snapshots de una carpeta;
+   - guardar baselines;
+   - cargar y validar baselines;
+   - comparar una baseline con el estado actual.
+
+2. **Generación de snapshots mediante SHA-256**
+
+   `generar_snapshot()` recorre recursivamente la carpeta vigilada y calcula el SHA-256 de cada archivo.
+
+   El snapshot utiliza una estructura similar a:
+
+   ```json
+   {
+       "ruta_base": "/home/usuario/Documentos",
+       "archivos": {
+           "factura.pdf": "SHA256...",
+           "Trabajo/informe.txt": "SHA256..."
+       }
+   }
+   ```
+
+   Las rutas de los archivos se almacenan de forma relativa a la carpeta vigilada.
+
+   `ruta_base` se normaliza como ruta absoluta.
+
+3. **Recorrido recursivo**
+
+   El FIM permite monitorizar archivos situados tanto en la carpeta principal como en sus subdirectorios.
+
+   Ejemplo:
+
+   ```text
+   vigilada/
+   ├── documento.txt
+   └── Trabajo/
+       └── informe.pdf
+   ```
+
+   El snapshot almacena:
+
+   ```text
+   documento.txt
+   Trabajo/informe.pdf
+   ```
+
+4. **Guardado de baselines**
+
+   Se añadió `guardar_baseline()`.
+
+   La función guarda el snapshot en formato JSON y crea automáticamente el directorio de destino cuando sea necesario.
+
+5. **Prevención de sobrescritura**
+
+   Si ya existe:
+
+   ```text
+   baseline.json
+   ```
+
+   el sistema genera automáticamente:
+
+   ```text
+   baseline_1.json
+   baseline_2.json
+   baseline_3.json
+   ...
+   ```
+
+   De esta forma se evita destruir una baseline anterior.
+
+6. **Exclusión de baselines del repositorio**
+
+   La carpeta:
+
+   `baselines/`
+
+   se añadió a `.gitignore`.
+
+   Las baselines contienen información generada durante la ejecución, como rutas y hashes del sistema de archivos, por lo que no forman parte del código fuente del proyecto.
+
+7. **Carga de baselines**
+
+   Se añadió `cargar_baseline()`.
+
+   La función permite recuperar desde JSON una baseline previamente creada y convertirla nuevamente en una estructura de datos Python.
+
+8. **Validación estructural de baselines**
+
+   Una baseline debe contener obligatoriamente:
+
+   ```text
+   ruta_base
+   archivos
+   ```
+
+   Si falta alguna de estas claves se genera un error explícito.
+
+9. **Validación de tipos**
+
+   Se comprueba que:
+
+   ```text
+   ruta_base → str
+   archivos  → dict
+   hashes    → str
+   ```
+
+   Los tipos incorrectos generan `TypeError`.
+
+10. **Validación de ruta base**
+
+    `ruta_base` debe:
+
+    - ser una cadena de texto;
+    - no estar vacía;
+    - no contener únicamente espacios;
+    - representar una ruta absoluta.
+
+    Las rutas relativas almacenadas en una baseline son rechazadas.
+
+11. **Validación del formato SHA-256**
+
+    Los hashes almacenados en una baseline deben cumplir el formato esperado para SHA-256:
+
+    - 64 caracteres;
+    - representación hexadecimal;
+    - caracteres comprendidos entre `0-9` y `a-f`.
+
+    Una cadena cualquiera ya no se acepta como hash válido.
+
+12. **Comparación de integridad**
+
+    Se añadió `comparar_integridad()`.
+
+    La función compara:
+
+    ```text
+    baseline
+       ↕
+    snapshot actual
+    ```
+
+    y clasifica los archivos en cuatro grupos:
+
+    ```text
+    sin_cambios
+    modificados
+    nuevos
+    eliminados
+    ```
+
+13. **Detección de archivos sin cambios**
+
+    Si una ruta existe en ambos snapshots y su SHA-256 coincide:
+
+    ```text
+    misma ruta + mismo hash
+    → sin_cambios
+    ```
+
+14. **Detección de archivos modificados**
+
+    Si una ruta existe en ambos estados pero su hash ha cambiado:
+
+    ```text
+    misma ruta + hash diferente
+    → modificados
+    ```
+
+15. **Detección de archivos nuevos**
+
+    Si un archivo aparece en el snapshot actual pero no existía en la baseline:
+
+    ```text
+    no estaba antes + existe ahora
+    → nuevos
+    ```
+
+16. **Detección de archivos eliminados**
+
+    Si un archivo estaba registrado en la baseline pero ya no aparece en el estado actual:
+
+    ```text
+    estaba antes + ya no existe
+    → eliminados
+    ```
+
+17. **Validación de la carpeta vigilada**
+
+    Antes de comparar dos estados se comprueba que ambos pertenecen a la misma `ruta_base`.
+
+    Intentar comparar snapshots correspondientes a carpetas diferentes genera `ValueError`.
+
+18. **Manejo de archivos que desaparecen durante el escaneo**
+
+    Durante un recorrido del sistema de archivos puede producirse una condición de carrera:
+
+    ```text
+    archivo detectado
+        ↓
+    otro proceso lo elimina
+        ↓
+    intento de calcular SHA-256
+    ```
+
+    Si el archivo desaparece durante el cálculo del hash, el FIM captura específicamente `FileNotFoundError`, omite ese archivo y continúa con el resto del análisis.
+
+    No se utiliza un manejador genérico `except Exception`.
+
+19. **Enlaces simbólicos**
+
+    Los enlaces simbólicos se ignoran deliberadamente durante la generación del snapshot.
+
+    Esto evita seguir automáticamente enlaces que podrían apuntar fuera de la carpeta vigilada.
+
+20. **Integración en el menú principal**
+
+    El monitor de integridad se integró en `organizador.py`.
+
+    El menú de v3.3 incluye:
+
+    ```text
+    9) Crear baseline de integridad
+    10) Verificar integridad
+    11) Salir
+    ```
+
+21. **Creación de baseline desde la interfaz**
+
+    La opción:
+
+    ```text
+    9) Crear baseline de integridad
+    ```
+
+    solicita una carpeta al usuario, genera su snapshot y guarda la baseline.
+
+    La interfaz muestra:
+
+    - ruta donde se ha guardado;
+    - número de archivos registrados.
+
+22. **Verificación de integridad desde la interfaz**
+
+    La opción:
+
+    ```text
+    10) Verificar integridad
+    ```
+
+    permite seleccionar una baseline previamente creada.
+
+    El programa:
+
+    1. carga y valida la baseline;
+    2. obtiene su `ruta_base`;
+    3. genera un snapshot actual;
+    4. compara ambos estados;
+    5. muestra el resultado.
+
+    Ejemplo:
+
+    ```text
+    ===== RESULTADO DE INTEGRIDAD =====
+    Sin cambios : 2
+    Modificados : 1
+    Nuevos      : 1
+    Eliminados  : 1
+    ```
+
+23. **Testing específico del FIM**
+
+    Se amplió:
+
+    `test/test_integridad.py`
+
+    y se creó:
+
+    `test/test_organizador_integridad.py`
+
+    Las pruebas cubren tanto la lógica del núcleo como su integración con la interfaz.
+
+24. **TDD aplicado al desarrollo**
+
+    Durante v3.3 las nuevas funcionalidades se desarrollaron mediante ciclos RED/GREEN.
+
+    Entre otros casos, los tests permitieron detectar:
+
+    - ausencia inicial de funciones;
+    - rutas relativas almacenadas incorrectamente;
+    - falta de clasificación de archivos modificados;
+    - falta de detección de nuevos y eliminados;
+    - un `return` colocado dentro de un bucle;
+    - baselines con estructura inválida;
+    - hashes con tipos incorrectos;
+    - hashes con formato SHA-256 inválido;
+    - rutas base vacías o relativas;
+    - tratamiento de symlinks;
+    - archivos que desaparecen durante el hashing.
+
+25. **Prueba manual end-to-end**
+
+    Además del testing automatizado se realizó una prueba manual completa sobre una carpeta temporal.
+
+    Se creó una baseline con archivos reales y posteriormente se provocaron simultáneamente los cuatro estados:
+
+    - archivo sin cambios;
+    - archivo modificado;
+    - archivo nuevo;
+    - archivo eliminado.
+
+    El resultado fue:
+
+    ```text
+    Sin cambios : 2
+    Modificados : 1
+    Nuevos      : 1
+    Eliminados  : 1
+    ```
+
+    El resultado coincidió exactamente con el estado real del sistema de archivos.
+
+### Pruebas realizadas
+
+La auditoría técnica final del FIM se realizó mediante:
+
+```bash
+python -m pytest \
+    test/test_integridad.py \
+    test/test_organizador_integridad.py \
+    -q
+```
+
+Resultado:
+
+```text
+30 passed
+```
+
+La batería completa del proyecto se ejecutó mediante:
+
+```bash
+python -m pytest test/ -q
+```
+
+Resultado:
+
+```text
+131 passed
+```
+
+El análisis estático completo se realizó mediante:
+
+```bash
+python -m ruff check .
+```
+
+Resultado:
+
+```text
+All checks passed!
+```
+
+También se validó la compilación:
+
+```bash
+python3 -m py_compile core/*.py organizador.py
+```
+
+y la limpieza formal de los cambios:
+
+```bash
+git diff --check
+```
+
+Todas las comprobaciones se completaron correctamente.
+
+### Competencias adquiridas
+
+El desarrollo de v3.3 permitió trabajar de forma práctica conceptos relacionados con sistemas de archivos, integridad y ciberseguridad defensiva:
+
+- File Integrity Monitoring (FIM);
+- creación de estados de referencia o baselines;
+- SHA-256 aplicado a monitorización de archivos;
+- comparación de estados del sistema de archivos;
+- detección de modificaciones;
+- detección de archivos nuevos y eliminados;
+- rutas absolutas y relativas con `pathlib`;
+- recorrido recursivo con `rglob()`;
+- serialización y carga mediante JSON;
+- validación de estructuras de datos externas;
+- diferencia entre `TypeError` y `ValueError`;
+- validación de formato hexadecimal;
+- manejo de condiciones de carrera;
+- tratamiento controlado de `FileNotFoundError`;
+- enlaces simbólicos y sus implicaciones de seguridad;
+- prevención de sobrescrituras;
+- diseño de funciones separadas de la presentación;
+- integración de funcionalidades de seguridad en una interfaz existente;
+- TDD mediante ciclos RED/GREEN;
+- tests de integración mediante `monkeypatch`;
+- validación de salida mediante `capsys`;
+- pruebas end-to-end;
+- mantenimiento de una batería de regresión.
+
+### Resultado
+
+Con v3.3, FileOrganizer incorpora un monitor de integridad funcional capaz de establecer un estado conocido de una carpeta y detectar posteriormente cambios en sus archivos.
+
+El flujo principal puede representarse como:
+
+```text
+Carpeta vigilada
+      │
+      ▼
+generar_snapshot()
+      │
+      ▼
+ SHA-256
+      │
+      ▼
+guardar_baseline()
+      │
+      ▼
+ baseline.json
+      │
+      │   pasa el tiempo
+      ▼
+generar_snapshot()
+      │
+      ▼
+comparar_integridad()
+      │
+      ├── sin cambios
+      ├── modificados
+      ├── nuevos
+      └── eliminados
+```
+
+La versión v3.3 amplía FileOrganizer hacia un nuevo ámbito de ciberseguridad defensiva y aprovecha la infraestructura de testing introducida en v3.2 para desarrollar las nuevas funcionalidades mediante TDD.
+
+La batería completa del proyecto alcanza:
+
+```text
+131 passed
+```
+
+y el análisis estático finaliza con:
+
+```text
+All checks passed!
+```
