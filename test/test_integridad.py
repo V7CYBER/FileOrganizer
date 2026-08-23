@@ -536,3 +536,22 @@ def test_cargar_baseline_ruta_base_vacia(tmp_path):
     # ACT / ASSERT
     with pytest.raises(ValueError):
         cargar_baseline(ruta)
+
+
+def test_cargar_baseline_ruta_base_relativa(tmp_path):
+    # ARRANGE
+    ruta = tmp_path / "baseline.json"
+
+    ruta.write_text(
+        json.dumps(
+            {
+                "ruta_base": "Documentos",
+                "archivos": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    # ACT / ASSERT
+    with pytest.raises(ValueError):
+        cargar_baseline(ruta)

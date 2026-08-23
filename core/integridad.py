@@ -93,6 +93,9 @@ def cargar_baseline(ruta):
     if not baseline["ruta_base"].strip():
         raise ValueError("'ruta_base' no puede estar vacía.")
 
+    if not Path(baseline["ruta_base"]).is_absolute():
+        raise ValueError("'ruta_base' debe ser una ruta absoluta.")
+
     if not isinstance(baseline["archivos"], dict):
         raise TypeError("'archivos' debe ser un diccionario.")
 
