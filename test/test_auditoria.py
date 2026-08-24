@@ -1,5 +1,6 @@
 from core.auditoria import (
     determinar_nivel_auditoria,
+    ejecutar_auditoria,
     generar_informe_auditoria,
     generar_resumen_auditoria,
     guardar_informe_auditoria,
@@ -278,3 +279,194 @@ def test_guardar_informe_auditoria_multiples_colisiones(tmp_path):
     assert primer_informe.name == "auditoria.txt"
     assert segundo_informe.name == "auditoria_1.txt"
     assert tercer_informe.name == "auditoria_2.txt"
+
+
+def test_ejecutar_auditoria_combina_seguridad_e_integridad(monkeypatch):
+    # ARRANGE
+    resultados_seguridad = ["resultado_simulado"]
+
+    resumen_seguridad = {
+        "ok": 8,
+        "sospechosos": 1,
+        "no_verificados": 0,
+    }
+
+    baseline = {
+        "ruta_base": "/tmp/vigilada",
+        "archivos": {},
+    }
+
+    snapshot_actual = {
+        "ruta_base": "/tmp/vigilada",
+        "archivos": {},
+    }
+
+    resultado_integridad = {
+        "sin_cambios": ["uno.txt"],
+        "modificados": ["dos.txt"],
+        "nuevos": [],
+        "eliminados": [],
+    }
+
+    monkeypatch.setattr(
+        "core.auditoria.verificar_archivos",
+        lambda _: resultados_seguridad,
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.generar_resumen_seguridad",
+        lambda _: resumen_seguridad,
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.cargar_baseline",
+        lambda _: baseline,
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.generar_snapshot",
+        lambda _: snapshot_actual,
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.comparar_integridad",
+        lambda _baseline, _actual: resultado_integridad,
+    )
+
+    # ACT
+    resultado = ejecutar_auditoria(
+        "/tmp/vigilada",
+        "/tmp/baseline.json",
+    )
+
+    # ASSERT
+    assert resultado["resumen"] == {
+        "seguridad": {
+            "ok": 8,
+            "sospechosos": 1,
+            "no_verificados": 0,
+        },
+        "integridad": {
+            "sin_cambios": 1,
+            "modificados": 1,
+            "nuevos": 0,
+            "eliminados": 0,
+        },
+    }
+
+    assert resultado["nivel"] == "ALERTA"
+
+
+def test_ejecutar_auditoria_usa_ruta_base_de_baseline(monkeypatch):
+    # ARRANGE
+    baseline = {
+        "ruta_base": "/tmp/ruta_baseline",
+        "archivos": {},
+    }
+
+    ruta_recibida = {}
+
+    monkeypatch.setattr(
+        "core.auditoria.verificar_archivos",
+        lambda _: [],
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.generar_resumen_seguridad",
+        lambda _: {
+            "ok": 0,
+            "sospechosos": 0,
+            "no_verificados": 0,
+        },
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.cargar_baseline",
+        lambda _: baseline,
+    )
+
+    def snapshot_simulado(ruta):
+        ruta_recibida["ruta"] = ruta
+
+        return {
+            "ruta_base": ruta,
+            "archivos": {},
+        }
+
+    monkeypatch.setattr(
+        "core.auditoria.generar_snapshot",
+        snapshot_simulado,
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.comparar_integridad",
+        lambda _baseline, _actual: {
+            "sin_cambios": [],
+            "modificados": [],
+            "nuevos": [],
+            "eliminados": [],
+        },
+    )
+
+    # ACT
+    ejecutar_auditoria(
+        "/tmp/ruta_seguridad",
+        "/tmp/baseline.json",
+    )
+
+    # ASSERT
+    assert ruta_recibida["ruta"] == "/tmp/ruta_baseline"
+
+
+def test_ejecutar_auditoria_incluye_informe(monkeypatch):
+    # ARRANGE
+    monkeypatch.setattr(
+        "core.auditoria.verificar_archivos",
+        lambda _: [],
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.generar_resumen_seguridad",
+        lambda _: {
+            "ok": 3,
+            "sospechosos": 0,
+            "no_verificados": 0,
+        },
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.cargar_baseline",
+        lambda _: {
+            "ruta_base": "/tmp/vigilada",
+            "archivos": {},
+        },
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.generar_snapshot",
+        lambda ruta: {
+            "ruta_base": ruta,
+            "archivos": {},
+        },
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.comparar_integridad",
+        lambda _baseline, _actual: {
+            "sin_cambios": ["uno.txt"],
+            "modificados": [],
+            "nuevos": [],
+            "eliminados": [],
+        },
+    )
+
+    # ACT
+    resultado = ejecutar_auditoria(
+        "/tmp/vigilada",
+        "/tmp/baseline.json",
+    )
+
+    # ASSERT
+    assert "informe" in resultado
+    assert "AUDITORÍA DE SEGURIDAD" in resultado["informe"]
+    assert "Nivel: OK" in resultado["informe"]

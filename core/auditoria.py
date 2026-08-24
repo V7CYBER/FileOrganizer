@@ -1,5 +1,8 @@
 from pathlib import Path
 
+from core.integridad import cargar_baseline, comparar_integridad, generar_snapshot
+from core.seguridad import generar_resumen_seguridad, verificar_archivos
+
 
 def generar_resumen_auditoria(seguridad, integridad):
     return {
@@ -15,6 +18,8 @@ def generar_resumen_auditoria(seguridad, integridad):
             "eliminados": len(integridad["eliminados"]),
         },
     }
+
+
 def determinar_nivel_auditoria(resumen):
     seguridad = resumen["seguridad"]
     integridad = resumen["integridad"]
@@ -66,9 +71,7 @@ def guardar_informe_auditoria(informe, destino):
         contador = 1
 
         while True:
-            candidato = ruta.with_name(
-                f"{ruta.stem}_{contador}{ruta.suffix}"
-            )
+            candidato = ruta.with_name(f"{ruta.stem}_{contador}{ruta.suffix}")
 
             if not candidato.exists():
                 ruta = candidato
@@ -82,3 +85,40 @@ def guardar_informe_auditoria(informe, destino):
     )
 
     return ruta
+
+
+def ejecutar_auditoria(carpeta, ruta_baseline):
+    resultados_seguridad = verificar_archivos(carpeta)
+
+    resumen_seguridad = generar_resumen_seguridad(
+        resultados_seguridad,
+    )
+
+    baseline = cargar_baseline(ruta_baseline)
+
+    snapshot_actual = generar_snapshot(
+        baseline["ruta_base"],
+    )
+
+    resultado_integridad = comparar_integridad(
+        baseline,
+        snapshot_actual,
+    )
+
+    resumen = generar_resumen_auditoria(
+        resumen_seguridad,
+        resultado_integridad,
+    )
+
+    nivel = determinar_nivel_auditoria(resumen)
+
+    informe = generar_informe_auditoria(
+        resumen,
+        nivel,
+    )
+
+    return {
+        "resumen": resumen,
+        "nivel": nivel,
+        "informe": informe,
+    }
