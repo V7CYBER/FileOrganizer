@@ -9,6 +9,7 @@ from core.analizador_logs import (
     detectar_fuerza_bruta_temporal,
     generar_resumen_logs,
 )
+from core.auditoria import ejecutar_auditoria, guardar_informe_auditoria
 from core.clasificador import clasificar_archivos
 from core.cuarentena import generar_alerta, poner_en_cuarentena
 from core.deshacer import deshacer_ultima_organizacion
@@ -597,12 +598,48 @@ def verificar_integridad():
     print(f"Nuevos      : {len(resultado['nuevos'])}")
     print(f"Eliminados  : {len(resultado['eliminados'])}")
 
+
+def mostrar_auditoria_seguridad(carpeta):
+    print("\n========================================")
+    print("       AUDITORÍA DE SEGURIDAD")
+    print("========================================")
+
+    ruta_baseline = input("\nRuta de la baseline: ").strip()
+
+    try:
+        resultado = ejecutar_auditoria(
+            carpeta,
+            ruta_baseline,
+        )
+
+        destino = Path("reports") / "auditoria.txt"
+
+        archivo_guardado = guardar_informe_auditoria(
+            resultado["informe"],
+            destino,
+        )
+
+    except (
+        FileNotFoundError,
+        NotADirectoryError,
+        ValueError,
+        TypeError,
+    ) as error:
+        print(f"\n✗ {error}")
+        return
+
+    print()
+    print(resultado["informe"])
+    print(f"\nInforme guardado en: {archivo_guardado}")
+
+
+
 def main():
 
     while True:
 
         print("=" * 40)
-        print("        FILE ORGANIZER v3.3")
+        print("        FILE ORGANIZER v3.4")
         print("=" * 40)
         print("1) Organizar carpeta")
         print("2) Modo simulación")
@@ -614,7 +651,8 @@ def main():
         print("8) Analizar archivo de logs")
         print("9) Crear baseline de integridad")
         print("10) Verificar integridad")
-        print("11) Salir")
+        print("11) Ejecutar auditoría de seguridad")
+        print("12) Salir")
 
         opcion = input("\nSeleccione una opción: ").strip()
 
@@ -660,6 +698,11 @@ def main():
             verificar_integridad()
 
         elif opcion == "11":
+
+           carpeta = input("\nCarpeta a auditar: ").strip()
+           mostrar_auditoria_seguridad(carpeta)
+
+        elif opcion == "12":
 
             print("\n¡Hasta la próxima!")
             break
