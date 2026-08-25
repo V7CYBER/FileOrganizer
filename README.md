@@ -2223,3 +2223,304 @@ y el análisis estático finaliza con:
 ```text
 All checks passed!
 ```
+---
+
+# v3.4 — Auditoría de seguridad
+
+La versión **v3.4** incorpora una capa de auditoría de seguridad que unifica funcionalidades defensivas desarrolladas en versiones anteriores de FileOrganizer.
+
+El nuevo sistema combina:
+
+- verificación de archivos;
+- detección de archivos sospechosos;
+- archivos no verificados;
+- monitorización de integridad mediante FIM;
+- clasificación del nivel de auditoría;
+- generación de informes;
+- almacenamiento de informes sin sobrescritura;
+- integración completa en el menú principal.
+
+## Motor de auditoría
+
+Se añadió el módulo:
+
+```text
+core/auditoria.py
+```
+
+Este módulo centraliza el flujo de auditoría y coordina los componentes de seguridad e integridad existentes.
+
+El flujo principal es:
+
+```text
+Carpeta a auditar
+      │
+      ▼
+cargar_baseline()
+      │
+      ▼
+validar coherencia de rutas
+      │
+      ▼
+verificar_archivos()
+      │
+      ▼
+generar_resumen_seguridad()
+      │
+      ▼
+generar_snapshot()
+      │
+      ▼
+comparar_integridad()
+      │
+      ▼
+generar_resumen_auditoria()
+      │
+      ▼
+determinar_nivel_auditoria()
+      │
+      ▼
+generar_informe_auditoria()
+```
+
+## Resumen unificado
+
+La auditoría combina dos fuentes de información.
+
+### Seguridad
+
+```text
+OK
+Sospechosos
+No verificados
+```
+
+### Integridad
+
+```text
+Sin cambios
+Modificados
+Nuevos
+Eliminados
+```
+
+De esta forma, FileOrganizer puede ofrecer una visión conjunta del estado de seguridad de una carpeta.
+
+## Niveles de auditoría
+
+v3.4 introduce tres niveles:
+
+```text
+OK
+ADVERTENCIA
+ALERTA
+```
+
+El nivel `OK` representa una auditoría sin incidencias detectadas.
+
+`ADVERTENCIA` se utiliza cuando existen situaciones que requieren revisión, como archivos no verificados o cambios de integridad.
+
+`ALERTA` tiene prioridad sobre los demás niveles y se utiliza cuando se detectan archivos sospechosos.
+
+## Informes de auditoría
+
+La auditoría genera informes de texto que incluyen:
+
+- nivel de auditoría;
+- archivos OK;
+- archivos sospechosos;
+- archivos no verificados;
+- archivos sin cambios;
+- archivos modificados;
+- archivos nuevos;
+- archivos eliminados.
+
+Los informes se almacenan en:
+
+```text
+reports/
+```
+
+El sistema evita sobrescribir informes existentes mediante nombres alternativos cuando se producen colisiones.
+
+Ejemplo:
+
+```text
+auditoria.txt
+auditoria_1.txt
+auditoria_2.txt
+...
+```
+
+## Validación de coherencia de rutas
+
+La auditoría comprueba que la carpeta solicitada coincida con la `ruta_base` almacenada en la baseline.
+
+```text
+carpeta a auditar
+        │
+        ▼
+baseline["ruta_base"]
+        │
+        ├── coincide ─────► continuar auditoría
+        │
+        └── no coincide ─► ValueError
+```
+
+Esta validación evita combinar accidentalmente el análisis de seguridad de una carpeta con el estado de integridad perteneciente a otra.
+
+Las rutas se normalizan mediante `Path.resolve()` antes de realizar la comparación.
+
+## Integración en el menú
+
+El menú principal fue actualizado a:
+
+```text
+========================================
+        FILE ORGANIZER v3.4
+========================================
+1) Organizar carpeta
+2) Modo simulación
+3) Deshacer última organización
+4) Ver estadisticas
+5) Buscar archivos duplicados por nombre
+6) Buscar archivos duplicados por contenido (SHA-256)
+7) Ver historial de organizaciones
+8) Analizar archivo de logs
+9) Crear baseline de integridad
+10) Verificar integridad
+11) Ejecutar auditoría de seguridad
+12) Salir
+```
+
+La nueva opción permite ejecutar una auditoría completa desde la interfaz principal.
+
+## Prueba manual end-to-end
+
+Además del testing automatizado se realizó una prueba manual completa utilizando una carpeta temporal.
+
+Primero se creó una baseline con dos archivos.
+
+La primera auditoría obtuvo:
+
+```text
+Nivel: ADVERTENCIA
+
+SEGURIDAD
+OK: 0
+Sospechosos: 0
+No verificados: 2
+
+INTEGRIDAD
+Sin cambios: 2
+Modificados: 0
+Nuevos: 0
+Eliminados: 0
+```
+
+Posteriormente se modificó deliberadamente uno de los archivos.
+
+La segunda auditoría detectó correctamente:
+
+```text
+Nivel: ADVERTENCIA
+
+SEGURIDAD
+OK: 0
+Sospechosos: 0
+No verificados: 2
+
+INTEGRIDAD
+Sin cambios: 1
+Modificados: 1
+Nuevos: 0
+Eliminados: 0
+```
+
+También se verificó la creación automática de informes dentro de `reports/`.
+
+## Testing
+
+v3.4 continúa utilizando desarrollo dirigido por pruebas mediante ciclos RED/GREEN.
+
+Se añadieron y ampliaron:
+
+```text
+test/test_auditoria.py
+test/test_organizador_auditoria.py
+```
+
+Los tests cubren:
+
+- generación del resumen de auditoría;
+- nivel `OK`;
+- nivel `ADVERTENCIA`;
+- nivel `ALERTA`;
+- prioridad de `ALERTA`;
+- tratamiento de archivos no verificados;
+- generación de informes;
+- contenido completo de informes;
+- almacenamiento de informes;
+- prevención de sobrescrituras;
+- múltiples colisiones de nombres;
+- combinación de seguridad e integridad;
+- utilización de la ruta base de la baseline;
+- inclusión del informe en el resultado;
+- rechazo de carpetas incompatibles con la baseline;
+- presentación de resultados desde la interfaz;
+- manejo de errores;
+- almacenamiento del informe desde la interfaz;
+- incorporación de la auditoría al menú;
+- ejecución de la auditoría desde el menú.
+
+La validación técnica final alcanzó:
+
+```text
+151 passed
+```
+
+El análisis estático finalizó con:
+
+```text
+All checks passed!
+```
+
+También se validaron correctamente:
+
+```bash
+python3 -m py_compile core/*.py organizador.py
+git diff --check
+```
+
+## Resultado
+
+Con v3.4, FileOrganizer deja de presentar por separado parte de sus mecanismos defensivos y comienza a utilizarlos como componentes de un **sistema unificado de auditoría**.
+
+La arquitectura puede resumirse como:
+
+```text
+             FILEORGANIZER v3.4
+                     │
+          ┌──────────┴──────────┐
+          ▼                     ▼
+      SEGURIDAD             INTEGRIDAD
+          │                     │
+ verificar_archivos()    generar_snapshot()
+          │                     │
+          │              comparar_integridad()
+          │                     │
+          └──────────┬──────────┘
+                     ▼
+          generar_resumen_auditoria()
+                     │
+                     ▼
+          determinar_nivel_auditoria()
+                     │
+                     ▼
+          generar_informe_auditoria()
+                     │
+                     ▼
+                 reports/
+```
+
+La versión v3.4 refuerza así la orientación de FileOrganizer hacia la ciberseguridad defensiva, reutilizando los mecanismos de seguridad de archivos y File Integrity Monitoring desarrollados anteriormente.
