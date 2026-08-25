@@ -88,13 +88,22 @@ def guardar_informe_auditoria(informe, destino):
 
 
 def ejecutar_auditoria(carpeta, ruta_baseline):
+    baseline = cargar_baseline(ruta_baseline)
+
+    ruta_carpeta = Path(carpeta).resolve()
+    ruta_base = Path(baseline["ruta_base"]).resolve()
+
+    if ruta_carpeta != ruta_base:
+        raise ValueError(
+            "La carpeta a auditar no coincide "
+            "con la ruta base de la baseline."
+        )
+
     resultados_seguridad = verificar_archivos(carpeta)
 
     resumen_seguridad = generar_resumen_seguridad(
         resultados_seguridad,
     )
-
-    baseline = cargar_baseline(ruta_baseline)
 
     snapshot_actual = generar_snapshot(
         baseline["ruta_base"],

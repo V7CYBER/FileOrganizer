@@ -410,7 +410,7 @@ def test_ejecutar_auditoria_usa_ruta_base_de_baseline(monkeypatch):
 
     # ACT
     ejecutar_auditoria(
-        "/tmp/ruta_seguridad",
+        "/tmp/ruta_baseline",
         "/tmp/baseline.json",
     )
 
@@ -470,3 +470,42 @@ def test_ejecutar_auditoria_incluye_informe(monkeypatch):
     assert "informe" in resultado
     assert "AUDITORÍA DE SEGURIDAD" in resultado["informe"]
     assert "Nivel: OK" in resultado["informe"]
+
+
+def test_ejecutar_auditoria_rechaza_carpeta_distinta_baseline(
+    monkeypatch,
+):
+    # ARRANGE
+    monkeypatch.setattr(
+        "core.auditoria.verificar_archivos",
+        lambda _: [],
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.generar_resumen_seguridad",
+        lambda _: {
+            "ok": 0,
+            "sospechosos": 0,
+            "no_verificados": 0,
+        },
+    )
+
+    monkeypatch.setattr(
+        "core.auditoria.cargar_baseline",
+        lambda _: {
+            "ruta_base": "/tmp/carpeta_baseline",
+            "archivos": {},
+        },
+    )
+
+    # ACT / ASSERT
+    import pytest
+
+    with pytest.raises(
+        ValueError,
+        match="no coincide",
+    ):
+        ejecutar_auditoria(
+            "/tmp/otra_carpeta",
+            "/tmp/baseline.json",
+        )
