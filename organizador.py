@@ -8,17 +8,12 @@ from core.clasificador import clasificar_archivos
 from core.cuarentena import generar_alerta, poner_en_cuarentena
 from core.deshacer import deshacer_ultima_organizacion
 from core.estadisticas import guardar_estadisticas
-from core.integridad import (
-    cargar_baseline,
-    comparar_integridad,
-    generar_snapshot,
-    guardar_baseline,
-)
 from core.mensajes import mostrar_error_ruta
 from core.movimientos import mover_archivos
 from core.seguridad import obtener_sospechosos, verificar_archivos
 from ui.duplicados import mostrar_duplicados, mostrar_duplicados_hash
 from ui.estadisticas import mostrar_estadisticas, mostrar_historial
+from ui.integridad import crear_baseline_integridad, verificar_integridad
 from ui.logs import mostrar_analisis_logs
 from ui.organizacion import mostrar_analisis_carpeta, mostrar_clasificacion
 
@@ -160,65 +155,6 @@ def seleccionar_carpeta(simulacion=False):
 
     print("\n----------------------------------------")
     print("Proceso finalizado correctamente.")
-
-
-def crear_baseline_integridad():
-    print("\n========================================")
-    print("       CREAR BASELINE DE INTEGRIDAD")
-    print("========================================")
-
-    ruta = input("\nCarpeta a vigilar: ").strip()
-
-    try:
-        snapshot = generar_snapshot(ruta)
-
-        destino = Path("baselines") / "baseline.json"
-
-        archivo_guardado = guardar_baseline(
-            snapshot,
-            destino,
-        )
-
-    except (FileNotFoundError, NotADirectoryError) as error:
-        print(f"\n✗ {error}")
-        return
-
-    print("\n✓ Baseline creada correctamente.")
-    print(f"Ruta: {archivo_guardado}")
-    print(f"Archivos registrados: " f"{len(snapshot['archivos'])}")
-
-
-def verificar_integridad():
-    print("\n========================================")
-    print("       VERIFICAR INTEGRIDAD")
-    print("========================================")
-
-    ruta_baseline = input("\nRuta de la baseline: ").strip()
-
-    try:
-        baseline = cargar_baseline(ruta_baseline)
-
-        snapshot_actual = generar_snapshot(baseline["ruta_base"])
-
-        resultado = comparar_integridad(
-            baseline,
-            snapshot_actual,
-        )
-
-    except (
-        FileNotFoundError,
-        NotADirectoryError,
-        ValueError,
-        TypeError,
-    ) as error:
-        print(f"\n✗ {error}")
-        return
-
-    print("\n===== RESULTADO DE INTEGRIDAD =====")
-    print(f"Sin cambios : {len(resultado['sin_cambios'])}")
-    print(f"Modificados : {len(resultado['modificados'])}")
-    print(f"Nuevos      : {len(resultado['nuevos'])}")
-    print(f"Eliminados  : {len(resultado['eliminados'])}")
 
 
 def mostrar_auditoria_seguridad(carpeta):

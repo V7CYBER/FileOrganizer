@@ -1,6 +1,6 @@
 import json
 
-from organizador import crear_baseline_integridad, verificar_integridad
+from ui.integridad import crear_baseline_integridad, verificar_integridad
 
 
 def test_crear_baseline_integridad(tmp_path, monkeypatch):
@@ -70,3 +70,41 @@ def test_verificar_integridad_detecta_modificado(
     assert "Modificados : 1" in salida
     assert "Nuevos      : 0" in salida
     assert "Eliminados  : 0" in salida
+
+
+def test_crear_baseline_integridad_maneja_ruta_invalida(
+    monkeypatch,
+    capsys,
+):
+    # ARRANGE
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: "/ruta/inexistente",
+    )
+
+    # ACT
+    crear_baseline_integridad()
+
+    # ASSERT
+    salida = capsys.readouterr().out
+
+    assert "✗" in salida
+
+
+def test_verificar_integridad_maneja_baseline_invalida(
+    monkeypatch,
+    capsys,
+):
+    # ARRANGE
+    monkeypatch.setattr(
+        "builtins.input",
+        lambda _: "/baseline/inexistente.json",
+    )
+
+    # ACT
+    verificar_integridad()
+
+    # ASSERT
+    salida = capsys.readouterr().out
+
+    assert "✗" in salida
