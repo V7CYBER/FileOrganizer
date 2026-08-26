@@ -3,7 +3,6 @@
 from pathlib import Path
 
 from core.analizador import analizar_carpeta
-from core.auditoria import ejecutar_auditoria, guardar_informe_auditoria
 from core.clasificador import clasificar_archivos
 from core.cuarentena import generar_alerta, poner_en_cuarentena
 from core.deshacer import deshacer_ultima_organizacion
@@ -11,6 +10,7 @@ from core.estadisticas import guardar_estadisticas
 from core.mensajes import mostrar_error_ruta
 from core.movimientos import mover_archivos
 from core.seguridad import obtener_sospechosos, verificar_archivos
+from ui.auditoria import mostrar_auditoria_seguridad
 from ui.duplicados import mostrar_duplicados, mostrar_duplicados_hash
 from ui.estadisticas import mostrar_estadisticas, mostrar_historial
 from ui.integridad import crear_baseline_integridad, verificar_integridad
@@ -155,40 +155,6 @@ def seleccionar_carpeta(simulacion=False):
 
     print("\n----------------------------------------")
     print("Proceso finalizado correctamente.")
-
-
-def mostrar_auditoria_seguridad(carpeta):
-    print("\n========================================")
-    print("       AUDITORÍA DE SEGURIDAD")
-    print("========================================")
-
-    ruta_baseline = input("\nRuta de la baseline: ").strip()
-
-    try:
-        resultado = ejecutar_auditoria(
-            carpeta,
-            ruta_baseline,
-        )
-
-        destino = Path("reports") / "auditoria.txt"
-
-        archivo_guardado = guardar_informe_auditoria(
-            resultado["informe"],
-            destino,
-        )
-
-    except (
-        FileNotFoundError,
-        NotADirectoryError,
-        ValueError,
-        TypeError,
-    ) as error:
-        print(f"\n✗ {error}")
-        return
-
-    print()
-    print(resultado["informe"])
-    print(f"\nInforme guardado en: {archivo_guardado}")
 
 
 def main():

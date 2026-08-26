@@ -1,4 +1,4 @@
-from organizador import mostrar_auditoria_seguridad
+from ui.auditoria import mostrar_auditoria_seguridad
 
 
 def test_mostrar_auditoria_seguridad_muestra_resultado(
@@ -12,7 +12,7 @@ def test_mostrar_auditoria_seguridad_muestra_resultado(
     )
 
     monkeypatch.setattr(
-        "organizador.ejecutar_auditoria",
+        "ui.auditoria.ejecutar_auditoria",
         lambda carpeta, baseline: {
             "resumen": {
                 "seguridad": {
@@ -55,7 +55,7 @@ def test_mostrar_auditoria_seguridad_maneja_error(
         raise FileNotFoundError("Baseline no encontrada")
 
     monkeypatch.setattr(
-        "organizador.ejecutar_auditoria",
+        "ui.auditoria.ejecutar_auditoria",
         auditoria_simulada,
     )
 
@@ -81,7 +81,7 @@ def test_mostrar_auditoria_seguridad_guarda_informe(
     )
 
     monkeypatch.setattr(
-        "organizador.ejecutar_auditoria",
+        "ui.auditoria.ejecutar_auditoria",
         lambda carpeta, baseline: {
             "resumen": {
                 "seguridad": {
