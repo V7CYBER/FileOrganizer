@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from datetime import datetime, timezone
 from pathlib import Path
 
 from core.analizador import analizar_carpeta
@@ -13,11 +12,7 @@ from core.auditoria import ejecutar_auditoria, guardar_informe_auditoria
 from core.clasificador import clasificar_archivos
 from core.cuarentena import generar_alerta, poner_en_cuarentena
 from core.deshacer import deshacer_ultima_organizacion
-from core.duplicados import buscar_duplicados
-from core.duplicados_hash import buscar_duplicados_hash
-from core.estadisticas import (
-    guardar_estadisticas,
-)
+from core.estadisticas import guardar_estadisticas
 from core.integridad import (
     cargar_baseline,
     comparar_integridad,
@@ -27,6 +22,7 @@ from core.integridad import (
 from core.mensajes import mostrar_error_ruta
 from core.movimientos import mover_archivos
 from core.seguridad import obtener_sospechosos, verificar_archivos
+from ui.duplicados import mostrar_duplicados, mostrar_duplicados_hash
 from ui.estadisticas import mostrar_estadisticas, mostrar_historial
 from ui.organizacion import mostrar_analisis_carpeta, mostrar_clasificacion
 
@@ -168,99 +164,6 @@ def seleccionar_carpeta(simulacion=False):
 
     print("\n----------------------------------------")
     print("Proceso finalizado correctamente.")
-
-
-def mostrar_duplicados_hash():
-
-    ruta = input("¿Qué carpeta quieres analizar? ").strip()
-
-    duplicados = buscar_duplicados_hash(ruta)
-
-    print("\n========================================")
-    print(" DUPLICADOS POR CONTENIDO (SHA-256)")
-    print("========================================")
-
-    print(f"\nGrupos encontrados..... {len(duplicados)}")
-
-    if not duplicados:
-
-        print("\nNo se encontraron archivos duplicados.")
-        print("----------------------------------------")
-        return
-
-    contador = 1
-
-    for hash_archivo, lista in duplicados.items():
-
-        print(f"\nGrupo {contador}\n")
-        if (
-            hash_archivo
-            == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        ):
-
-            print("⚠ Archivos vacíos")
-
-        else:
-
-            print("Hash")
-            print(f"{hash_archivo[:16]}...")
-
-        print(f"Archivos encontrados: {len(lista)}")
-        print("\nArchivos\n")
-
-        for archivo in lista:
-
-            fecha = (
-                datetime.fromtimestamp(
-                    archivo["fecha"],
-                    tz=timezone.utc,
-                )
-                .astimezone()
-                .strftime("%d/%m/%Y %H:%M:%S")
-            )
-
-            print(f"Nombre               : {archivo['nombre']}")
-            print(f"Ruta                 : {archivo['ruta']}")
-            print(f"Tamaño               : {archivo['tamano']} bytes")
-            print(f"Última modificación  : {fecha}")
-            print()
-
-            print("----------------------------------------")
-
-        contador += 1
-
-
-def mostrar_duplicados():
-
-    ruta = input("¿Qué carpeta quieres analizar? ").strip()
-
-    carpeta = Path(ruta)
-
-    if not carpeta.exists() or not carpeta.is_dir():
-        mostrar_error_ruta(carpeta)
-        return
-
-    duplicados = buscar_duplicados(carpeta)
-
-    print("\n========================================")
-    print("      ARCHIVOS DUPLICADOS")
-    print("========================================")
-
-    print(f"\nGrupos encontrados..... {len(duplicados)}")
-
-    if not duplicados:
-        print("\nNo se encontraron archivos duplicados.")
-        print("----------------------------------------")
-        return
-
-    for nombre, lista in duplicados.items():
-
-        print(f"\n{nombre}")
-
-        for archivo in lista:
-            print(f"   {archivo}")
-
-        print("----------------------------------------")
 
 
 def mostrar_analisis_logs():
