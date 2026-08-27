@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import organizador
+import ui.organizacion
 
 
 def test_enviar_sospechosos_vacio_no_hace_nada(
@@ -14,13 +14,13 @@ def test_enviar_sospechosos_vacio_no_hace_nada(
         llamadas.append((args, kwargs))
 
     monkeypatch.setattr(
-        organizador,
+        ui.organizacion,
         "poner_en_cuarentena",
         cuarentena_falsa,
     )
 
     # ACT
-    organizador.enviar_sospechosos_cuarentena([])
+    ui.organizacion.enviar_sospechosos_cuarentena([])
 
     # ASSERT
     salida = capsys.readouterr().out
@@ -64,20 +64,16 @@ def test_enviar_sospechosos_llama_cuarentena(
             )
         )
 
-        return Path(
-            "/tmp/quarantine"
-        ) / Path(ruta_archivo).name
+        return Path("/tmp/quarantine") / Path(ruta_archivo).name
 
     monkeypatch.setattr(
-        organizador,
+        ui.organizacion,
         "poner_en_cuarentena",
         cuarentena_falsa,
     )
 
     # ACT
-    organizador.enviar_sospechosos_cuarentena(
-        sospechosos
-    )
+    ui.organizacion.enviar_sospechosos_cuarentena(sospechosos)
 
     # ASSERT
     salida = capsys.readouterr().out

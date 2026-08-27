@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from organizador import mostrar_analisis_carpeta
+from ui.organizacion import mostrar_analisis_carpeta
 
 
 def test_mostrar_analisis_con_extensiones(capsys):

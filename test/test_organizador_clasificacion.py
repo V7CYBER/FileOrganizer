@@ -1,4 +1,4 @@
-from organizador import mostrar_clasificacion
+from ui.organizacion import mostrar_clasificacion
 
 
 def test_mostrar_clasificacion_con_archivos(capsys):

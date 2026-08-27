@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from organizador import mostrar_alertas_seguridad
+from ui.organizacion import mostrar_alertas_seguridad
 
 
 def test_alertas_vacias_no_imprimen(capsys):
