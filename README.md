@@ -25,29 +25,80 @@ Organizar automáticamente los archivos de una carpeta según su extensión, uti
 
 ```text
 FileOrganizer/
-core/
-|__ hash.py
-|__ duplicados_hash.py
-|__ .gitignore
-├── analizador.py
-├── clasificador.py
-├── creador.py
-├── deshacer.py
-├── duplicados.py
-├── estadisticas.py
-├── logger.py
-├── mensajes.py
-└── movimientos.py
+├── core/
+│   ├── analizador.py
+│   ├── analizador_logs.py
+│   ├── auditoria.py
+│   ├── clasificador.py
+│   ├── configuracion.py
+│   ├── creador.py
+│   ├── cuarentena.py
+│   ├── deshacer.py
+│   ├── duplicados.py
+│   ├── duplicados_hash.py
+│   ├── estadisticas.py
+│   ├── hash.py
+│   ├── informes.py
+│   ├── integridad.py
+│   ├── logger.py
+│   ├── magic_numbers.py
+│   ├── mensajes.py
+│   ├── movimientos.py
+│   ├── rutas.py
+│   ├── seguridad.py
+│   └── verificador.py
+├── ui/
+│   ├── __init__.py
+│   ├── auditoria.py
+│   ├── duplicados.py
+│   ├── estadisticas.py
+│   ├── integridad.py
+│   ├── logs.py
+│   └── organizacion.py
 ├── docs/
-├── logs/
-├── stats/
-│   └── estadisticas.json
+│   ├── Resumen_v3.1_Seguridad.md
+│   ├── Resumen_v3.2_Robustez_Testing.md
+│   ├── Resumen_v3.3_Monitor_Integridad.md
+│   ├── Resumen_v3.4_Auditoria_Seguridad.md
+│   └── Resumen_v3.5_Refactor_Arquitectura.md
+├── reports/
+│   └── .gitkeep
 ├── test/
-├── utils/
+│   ├── test_analizador_logs_correlacion.py
+│   ├── test_analizador_logs_funciones.py
+│   ├── test_analizador_logs_ip.py
+│   ├── test_analizador_logs_patrones.py
+│   ├── test_analizador_logs_robustez.py
+│   ├── test_analizador_logs_tiempo.py
+│   ├── test_auditoria.py
+│   ├── test_cuarentena.py
+│   ├── test_cuarentena_robustez.py
+│   ├── test_filesystem_robustez.py
+│   ├── test_integridad.py
+│   ├── test_magic_numbers.py
+│   ├── test_magic_numbers_robustez.py
+│   ├── test_movimientos_robustez.py
+│   ├── test_organizador_alertas.py
+│   ├── test_organizador_analisis.py
+│   ├── test_organizador_auditoria.py
+│   ├── test_organizador_clasificacion.py
+│   ├── test_organizador_cuarentena.py
+│   ├── test_organizador_duplicados.py
+│   ├── test_organizador_integridad.py
+│   ├── test_organizador_logs.py
+│   ├── test_organizador_seleccion.py
+│   ├── test_permisos_robustez.py
+│   ├── test_seguridad.py
+│   ├── test_verificador.py
+│   └── test_verificador_robustez.py
 ├── config.json
+├── .gitignore
 ├── organizador.py
-└── README.md
+├── README.md
+├── requirements-dev.txt
+└── requirements.txt
 ```
+
 ---
 
 ## Versiones
@@ -2524,3 +2575,323 @@ La arquitectura puede resumirse como:
 ```
 
 La versión v3.4 refuerza así la orientación de FileOrganizer hacia la ciberseguridad defensiva, reutilizando los mecanismos de seguridad de archivos y File Integrity Monitoring desarrollados anteriormente.
+---
+
+# v3.5 — Refactor de arquitectura e interfaz
+
+La versión **v3.5** reorganiza la arquitectura interna de FileOrganizer para separar la interacción con el usuario de la lógica funcional del proyecto.
+
+El objetivo principal de esta versión no es añadir nuevas funcionalidades al programa, sino mejorar su **modularidad, mantenibilidad, testabilidad y claridad arquitectónica** sin alterar el comportamiento existente.
+
+## Objetivo del refactor
+
+Antes de v3.5, `organizador.py` concentraba gran parte de la interfaz de terminal y coordinaba directamente funcionalidades pertenecientes a distintas áreas del proyecto.
+
+A medida que FileOrganizer incorporó estadísticas, duplicados, análisis de logs, monitorización de integridad y auditoría de seguridad, este archivo fue creciendo hasta alcanzar aproximadamente **718 líneas**.
+
+v3.5 introduce una nueva capa:
+
+```text
+ui/
+```
+
+encargada de agrupar las funciones relacionadas con la interacción mediante terminal.
+
+La arquitectura queda conceptualmente dividida en:
+
+```text
+FileOrganizer
+│
+├── organizador.py
+│   └── punto de entrada y menú principal
+│
+├── ui/
+│   └── interacción con el usuario
+│
+└── core/
+    └── lógica funcional del programa
+```
+
+## Nueva capa `ui/`
+
+La interfaz se distribuye en módulos especializados:
+
+```text
+ui/
+├── __init__.py
+├── auditoria.py
+├── duplicados.py
+├── estadisticas.py
+├── integridad.py
+├── logs.py
+└── organizacion.py
+```
+
+### `ui/organizacion.py`
+
+Contiene el flujo principal de organización:
+
+```text
+mostrar_analisis_carpeta()
+mostrar_clasificacion()
+mostrar_alertas_seguridad()
+enviar_sospechosos_cuarentena()
+seleccionar_carpeta()
+```
+
+Este módulo coordina el análisis, clasificación, comprobaciones de seguridad, confirmación del usuario, simulación, cuarentena, movimiento de archivos y presentación del resumen final.
+
+### `ui/estadisticas.py`
+
+Agrupa:
+
+```text
+mostrar_estadisticas()
+mostrar_historial()
+```
+
+La presentación de estadísticas e historial deja de formar parte del punto de entrada principal.
+
+### `ui/duplicados.py`
+
+Agrupa:
+
+```text
+mostrar_duplicados()
+mostrar_duplicados_hash()
+```
+
+La interfaz de búsqueda de duplicados por nombre y por contenido SHA-256 queda aislada de `organizador.py`.
+
+### `ui/logs.py`
+
+Contiene:
+
+```text
+mostrar_analisis_logs()
+```
+
+Este módulo gestiona la interacción para el análisis defensivo de logs y la presentación de eventos y alertas correlacionadas.
+
+### `ui/integridad.py`
+
+Agrupa:
+
+```text
+crear_baseline_integridad()
+verificar_integridad()
+```
+
+La interfaz del monitor de integridad queda separada de la lógica FIM implementada en `core/integridad.py`.
+
+### `ui/auditoria.py`
+
+Contiene:
+
+```text
+mostrar_auditoria_seguridad()
+```
+
+La interfaz de auditoría queda separada de `core/auditoria.py`, responsable de la lógica de análisis y generación del informe.
+
+## Simplificación de `organizador.py`
+
+Uno de los resultados principales de v3.5 es la reducción de `organizador.py`.
+
+Antes del refactor:
+
+```text
+organizador.py
+≈ 718 líneas
+```
+
+Después del refactor:
+
+```text
+organizador.py
+89 líneas
+```
+
+El archivo conserva una única función propia:
+
+```text
+main()
+```
+
+Su responsabilidad queda reducida esencialmente a:
+
+```text
+mostrar menú
+     │
+     ▼
+leer opción
+     │
+     ▼
+delegar en ui/ o core/
+     │
+     ▼
+repetir / salir
+```
+
+Esto convierte `organizador.py` en un punto de entrada mucho más pequeño y fácil de mantener.
+
+## Arquitectura resultante
+
+Antes de v3.5:
+
+```text
+organizador.py
+    │
+    ├── menú
+    ├── análisis
+    ├── clasificación
+    ├── seguridad
+    ├── cuarentena
+    ├── duplicados
+    ├── estadísticas
+    ├── historial
+    ├── análisis de logs
+    ├── integridad
+    └── auditoría
+```
+
+Después de v3.5:
+
+```text
+              organizador.py
+                  89 líneas
+                      │
+                    main()
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+        ui/                      core/
+          │                       │
+ interacción terminal        lógica funcional
+          │                       │
+          └───────────┬───────────┘
+                      ▼
+                FileOrganizer
+```
+
+La separación permite distinguir con mayor claridad:
+
+- **entrada y navegación** → `organizador.py`;
+- **presentación e interacción** → `ui/`;
+- **lógica funcional y defensiva** → `core/`.
+
+## Caracterización antes de extraer
+
+Las funciones no se trasladaron directamente sin protección.
+
+Antes de extraer bloques importantes se añadieron o ampliaron tests de caracterización para conservar el comportamiento existente.
+
+Se caracterizaron específicamente:
+
+- análisis de carpetas;
+- clasificación;
+- alertas de seguridad;
+- cuarentena;
+- selección y organización de carpetas;
+- modo simulación;
+- estadísticas;
+- historial;
+- duplicados;
+- análisis de logs;
+- integridad;
+- auditoría.
+
+Este procedimiento permitió realizar el refactor manteniendo una red de seguridad contra regresiones.
+
+## Tests de selección y organización
+
+v3.5 incorpora `test/test_organizador_seleccion.py`.
+
+Los tests verifican:
+
+- rechazo de rutas inválidas;
+- cancelación por parte del usuario;
+- funcionamiento del modo simulación;
+- ausencia de movimientos reales durante la simulación;
+- organización real;
+- generación de estadísticas tras mover archivos.
+
+## Validación técnica
+
+La batería completa al finalizar el refactor alcanza:
+
+```text
+165 passed
+```
+
+El análisis estático finaliza con:
+
+```text
+All checks passed!
+```
+
+También se validan correctamente:
+
+```bash
+python3 -m py_compile core/*.py ui/*.py organizador.py
+git diff --check
+```
+
+## Commits principales de v3.5
+
+El refactor se desarrolló incrementalmente:
+
+```text
+a0f98f6  v3.5: inicia refactor de capa de interfaz
+7b19671  v3.5: extrae interfaz de estadisticas e historial
+bba4ad3  v3.5: extrae interfaz de duplicados
+45765bf  v3.5: extrae interfaz de analisis de logs
+35c652c  v3.5: extrae interfaz de integridad
+0d3182f  v3.5: extrae interfaz de auditoria
+46cf699  v3.5: completa refactor de interfaz de organizacion
+```
+
+Cada bloque fue validado antes de continuar con el siguiente.
+
+## Limpieza y hardening
+
+Durante el cierre de v3.5 también se revisaron:
+
+- archivos ignorados por Git;
+- directorios generados durante la ejecución;
+- cachés de `pytest` y Ruff;
+- baselines;
+- cuarentena;
+- logs;
+- informes;
+- estadísticas;
+- dependencias de desarrollo;
+- imports residuales;
+- referencias antiguas a funciones trasladadas.
+
+El directorio vacío `utils/` fue eliminado al comprobarse que no contenía código ni referencias activas.
+
+Los artefactos generados durante la ejecución continúan excluidos mediante `.gitignore`.
+
+## Resultado
+
+v3.5 transforma la estructura del proyecto sin modificar su propósito funcional.
+
+FileOrganizer pasa de depender de un archivo principal de gran tamaño a utilizar una arquitectura más claramente separada:
+
+```text
+              FILEORGANIZER v3.5
+                       │
+              ┌────────┴────────┐
+              ▼                 ▼
+             ui/              core/
+              │                 │
+        presentación      lógica funcional
+              │                 │
+              └────────┬────────┘
+                       ▼
+                organizador.py
+                    main()
+```
+
+El resultado es una base más adecuada para continuar desarrollando funcionalidades de ciberseguridad, ampliar los tests y evolucionar el proyecto sin volver a concentrar responsabilidades en `organizador.py`.
