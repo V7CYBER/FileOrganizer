@@ -32,6 +32,8 @@ def test_mostrar_analisis_logs_muestra_resumen(
             "ip": "192.168.1.10",
             "tipo": "SQL_INJECTION",
             "severidad": "ALTA",
+            "regla": "WEB_SQL_001",
+            "descripcion": "Posible intento de SQL Injection",
             "contenido": "UNION SELECT",
         }
     ]
@@ -71,6 +73,8 @@ def test_mostrar_analisis_logs_muestra_resumen(
     assert "SQL Injection........ 1" in salida
     assert "192.168.1.10" in salida
     assert "UNION SELECT" in salida
+    assert "WEB_SQL_001" in salida
+    assert "Posible intento de SQL Injection" in salida
 
 
 def test_mostrar_analisis_logs_sin_eventos(

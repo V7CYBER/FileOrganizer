@@ -2,40 +2,13 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-PATRONES_SEGURIDAD = {
-    "SQL_INJECTION": [
-        re.compile(r"\bunion\s+select\b", re.IGNORECASE),
-        re.compile(r"\bor\s+1\s*=\s*1\b", re.IGNORECASE),
-        re.compile(r"\band\s+1\s*=\s*1\b", re.IGNORECASE),
-        re.compile(r"\bor\s+'[^']*'\s*=\s*'[^']*'", re.IGNORECASE),
-        re.compile(r"\bsleep\s*\(\s*\d+\s*\)", re.IGNORECASE),
-        re.compile(r"\bbenchmark\s*\(", re.IGNORECASE),
-        re.compile(r"\bdrop\s+table\b", re.IGNORECASE),
-        re.compile(r"\binformation_schema\b", re.IGNORECASE),
-    ],
-
-    "FUERZA_BRUTA": [
-        re.compile(r"\bfailed\s+password\b", re.IGNORECASE),
-        re.compile(r"\bfailed\s+login\b", re.IGNORECASE),
-        re.compile(r"\bauthentication\s+failure\b", re.IGNORECASE),
-        re.compile(r"\binvalid\s+user\b", re.IGNORECASE),
-        re.compile(r"\bmaximum\s+authentication\s+attempts\b", re.IGNORECASE),
-        re.compile(r"\btoo\s+many\s+authentication\s+failures\b", re.IGNORECASE),
-    ],
-}
-
-
-SEVERIDADES = {
-    "SQL_INJECTION": "ALTA",
-    "FUERZA_BRUTA": "MEDIA",
-}
-
+from core.reglas_logs import (
+    REGLAS_DETECCION,
+    evaluar_linea_con_reglas,
+)
 
 PATRON_IP = re.compile(
-    r"\b(?:"
-    r"(?:25[0-5]|2[0-4]\d|1?\d?\d)\."
-    r"){3}"
-    r"(?:25[0-5]|2[0-4]\d|1?\d?\d)\b"
+    r"\b(?:" r"(?:25[0-5]|2[0-4]\d|1?\d?\d)\." r"){3}" r"(?:25[0-5]|2[0-4]\d|1?\d?\d)\b"
 )
 
 
@@ -61,21 +34,23 @@ def analizar_linea(linea, numero_linea):
 
     eventos = []
 
-    for tipo, patrones in PATRONES_SEGURIDAD.items():
+    reglas_coincidentes = evaluar_linea_con_reglas(
+        linea,
+        REGLAS_DETECCION,
+    )
 
-        for patron in patrones:
-
-            if patron.search(linea):
-
-                eventos.append({
-                    "linea": numero_linea,
-                    "ip": extraer_ip(linea),
-                    "tipo": tipo,
-                    "severidad": SEVERIDADES[tipo],
-                    "contenido": linea.rstrip("\n"),
-                })
-
-                break
+    for regla in reglas_coincidentes:
+        eventos.append(
+            {
+                "linea": numero_linea,
+                "ip": extraer_ip(linea),
+                "tipo": regla["tipo"],
+                "severidad": regla["severidad"],
+                "regla": regla["id"],
+                "descripcion": regla["descripcion"],
+                "contenido": linea.rstrip("\n"),
+            }
+        )
 
     return eventos
 
@@ -88,14 +63,10 @@ def analizar_log(ruta_archivo):
     ruta = Path(ruta_archivo)
 
     if not ruta.exists():
-        raise FileNotFoundError(
-            f"No existe el archivo: {ruta}"
-        )
+        raise FileNotFoundError(f"No existe el archivo: {ruta}")
 
     if not ruta.is_file():
-        raise ValueError(
-            f"La ruta no es un archivo: {ruta}"
-        )
+        raise ValueError(f"La ruta no es un archivo: {ruta}")
 
     eventos = []
 
@@ -185,31 +156,24 @@ def detectar_fuerza_bruta_por_ip(eventos, umbral=3):
 
     for ip, eventos_ip in agrupados.items():
 
-        intentos = [
-            evento
-            for evento in eventos_ip
-            if evento["tipo"] == "FUERZA_BRUTA"
-        ]
+        intentos = [evento for evento in eventos_ip if evento["tipo"] == "FUERZA_BRUTA"]
 
         if len(intentos) >= umbral:
 
-            alertas.append({
-                "ip": ip,
-                "tipo": "POSIBLE_FUERZA_BRUTA",
-                "severidad": "ALTA",
-                "intentos": len(intentos),
-                "lineas": [
-                    evento["linea"]
-                    for evento in intentos
-                ],
-            })
+            alertas.append(
+                {
+                    "ip": ip,
+                    "tipo": "POSIBLE_FUERZA_BRUTA",
+                    "severidad": "ALTA",
+                    "intentos": len(intentos),
+                    "lineas": [evento["linea"] for evento in intentos],
+                }
+            )
 
     return alertas
 
 
-PATRON_FECHA_LOG = re.compile(
-    r"\[(\d{2}/[A-Za-z]{3}/\d{4}:\d{2}:\d{2}:\d{2})\]"
-)
+PATRON_FECHA_LOG = re.compile(r"\[(\d{2}/[A-Za-z]{3}/\d{4}:\d{2}:\d{2}:\d{2})\]")
 
 
 def extraer_fecha_log(linea):
@@ -267,52 +231,40 @@ def detectar_fuerza_bruta_temporal(
             if evento["tipo"] != "FUERZA_BRUTA":
                 continue
 
-            fecha_texto = extraer_fecha_log(
-                evento["contenido"]
-            )
+            fecha_texto = extraer_fecha_log(evento["contenido"])
 
-            fecha = convertir_fecha_log(
-                fecha_texto
-            )
+            fecha = convertir_fecha_log(fecha_texto)
 
             if fecha is None:
                 continue
 
-            intentos.append({
-                "fecha": fecha,
-                "linea": evento["linea"],
-            })
+            intentos.append(
+                {
+                    "fecha": fecha,
+                    "linea": evento["linea"],
+                }
+            )
 
-        intentos.sort(
-            key=lambda intento: intento["fecha"]
-        )
+        intentos.sort(key=lambda intento: intento["fecha"])
 
-        for indice in range(
-            len(intentos) - umbral + 1
-        ):
+        for indice in range(len(intentos) - umbral + 1):
 
-            ventana = intentos[
-                indice:indice + umbral
-            ]
+            ventana = intentos[indice : indice + umbral]
 
-            diferencia = (
-                ventana[-1]["fecha"]
-                - ventana[0]["fecha"]
-            ).total_seconds()
+            diferencia = (ventana[-1]["fecha"] - ventana[0]["fecha"]).total_seconds()
 
             if diferencia <= ventana_segundos:
 
-                alertas.append({
-                    "ip": ip,
-                    "tipo": "POSIBLE_FUERZA_BRUTA",
-                    "severidad": "ALTA",
-                    "intentos": umbral,
-                    "ventana_segundos": diferencia,
-                    "lineas": [
-                        intento["linea"]
-                        for intento in ventana
-                    ],
-                })
+                alertas.append(
+                    {
+                        "ip": ip,
+                        "tipo": "POSIBLE_FUERZA_BRUTA",
+                        "severidad": "ALTA",
+                        "intentos": umbral,
+                        "ventana_segundos": diferencia,
+                        "lineas": [intento["linea"] for intento in ventana],
+                    }
+                )
 
                 break
 

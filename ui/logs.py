@@ -53,6 +53,8 @@ def mostrar_analisis_logs():
                 f"\nIP........... {ip}"
                 f"\nTipo......... {evento['tipo']}"
                 f"\nSeveridad.... {evento['severidad']}"
+                f"\nRegla........ {evento['regla']}"
+                f"\nDescripción.. {evento['descripcion']}"
                 f"\nContenido.... {evento['contenido']}"
             )
 
