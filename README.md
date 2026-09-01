@@ -37,6 +37,7 @@ FileOrganizer/
 │   ├── duplicados.py
 │   ├── duplicados_hash.py
 │   ├── estadisticas.py
+│   ├── eventos.py
 │   ├── hash.py
 │   ├── informes.py
 │   ├── integridad.py
@@ -66,6 +67,7 @@ FileOrganizer/
 ├── reports/
 │   └── .gitkeep
 ├── test/
+│   ├── test_analizador_logs_eventos.py
 │   ├── test_analizador_logs_correlacion.py
 │   ├── test_analizador_logs_funciones.py
 │   ├── test_analizador_logs_ip.py
@@ -76,6 +78,7 @@ FileOrganizer/
 │   ├── test_auditoria.py
 │   ├── test_cuarentena.py
 │   ├── test_cuarentena_robustez.py
+│   ├── test_eventos.py
 │   ├── test_filesystem_robustez.py
 │   ├── test_integridad.py
 │   ├── test_magic_numbers.py
@@ -3235,3 +3238,286 @@ La arquitectura resultante puede resumirse como:
 ```
 
 v3.6 convierte el analizador de logs en una base más próxima conceptualmente a un pequeño sistema de detección defensiva, manteniendo el proyecto comprensible y extensible.
+---
+
+# v3.7 — Normalización de eventos de seguridad
+
+La versión **v3.7** introduce una capa específica para construir y normalizar eventos de seguridad.
+
+Después de v3.6, el analizador de logs ya disponía de un motor declarativo de reglas. Sin embargo, `core/analizador_logs.py` seguía construyendo directamente los diccionarios de eventos.
+
+v3.7 separa también esa responsabilidad mediante el nuevo módulo:
+
+```text
+core/eventos.py
+```
+
+## Objetivo
+
+El objetivo principal es centralizar la creación de eventos de seguridad y definir un contrato común para todos ellos.
+
+Antes de v3.7:
+
+```text
+analizador_logs.py
+        │
+        ▼
+construcción manual del diccionario
+```
+
+Después de v3.7:
+
+```text
+analizador_logs.py
+        │
+        ▼
+crear_evento_seguridad()
+        │
+        ▼
+evento normalizado
+```
+
+## Nuevo módulo core/eventos.py
+
+v3.7 incorpora:
+
+```text
+core/eventos.py
+```
+
+con la función:
+
+```python
+crear_evento_seguridad()
+```
+
+El evento normalizado contiene:
+
+```text
+linea
+ip
+tipo
+severidad
+regla
+descripcion
+contenido
+fecha
+```
+
+## Validación del contrato
+
+El constructor valida distintos aspectos del evento.
+
+La regla debe contener:
+
+```text
+id
+tipo
+severidad
+descripcion
+```
+
+Una regla incompleta produce:
+
+```text
+ValueError
+```
+
+El número de línea debe ser un entero positivo.
+
+Se diferencia entre:
+
+```text
+tipo incorrecto de línea  → TypeError
+valor incorrecto de línea → ValueError
+```
+
+El contenido debe ser una cadena de texto.
+
+Un tipo inválido produce:
+
+```text
+TypeError
+```
+
+La dirección IP puede ser:
+
+```text
+IPv4 válida
+None
+```
+
+porque no todas las líneas de log contienen una IP.
+
+## Normalización temporal
+
+v3.7 amplía el evento con:
+
+```text
+fecha
+```
+
+Cuando la línea contiene una fecha Apache compatible:
+
+```text
+[16/Aug/2026:09:01:16]
+```
+
+`analizar_linea()` reutiliza las funciones existentes:
+
+```text
+extraer_fecha_log()
+convertir_fecha_log()
+```
+
+y almacena el resultado como un objeto `datetime`.
+
+Cuando no existe fecha:
+
+```text
+fecha = None
+```
+
+## Integración con analizar_linea()
+
+`core/analizador_logs.py` deja de construir manualmente cada evento.
+
+Ahora utiliza:
+
+```python
+crear_evento_seguridad()
+```
+
+La responsabilidad queda separada así:
+
+```text
+reglas_logs.py
+└── qué detectar
+
+analizador_logs.py
+└── analizar y correlacionar
+
+eventos.py
+└── construir y validar eventos
+```
+
+## Correlación temporal
+
+La correlación de fuerza bruta también fue adaptada para aprovechar los eventos normalizados.
+
+Cuando un evento ya contiene:
+
+```text
+evento["fecha"]
+```
+
+la correlación utiliza directamente ese valor.
+
+Para conservar compatibilidad con los eventos históricos y los tests anteriores, se mantiene un fallback:
+
+```text
+si fecha existe
+    usar evento["fecha"]
+
+si fecha no existe
+    extraerla de evento["contenido"]
+```
+
+Esto permite evolucionar el contrato sin romper el comportamiento previo.
+
+## Desarrollo mediante TDD
+
+v3.7 se desarrolló mediante ciclos RED/GREEN.
+
+Se caracterizaron:
+
+- estructura normalizada del evento;
+- IP ausente;
+- regla incompleta;
+- línea inválida;
+- tipo de línea inválido;
+- contenido inválido;
+- fecha opcional;
+- integración del constructor con `analizar_linea()`;
+- extracción de fecha desde el log;
+- utilización de la fecha normalizada por la correlación temporal;
+- compatibilidad con eventos históricos.
+
+Se añadieron:
+
+```text
+test/test_eventos.py
+test/test_analizador_logs_eventos.py
+```
+
+y se amplió:
+
+```text
+test/test_analizador_logs_correlacion.py
+```
+
+## Validación técnica
+
+La batería completa alcanza:
+
+```text
+192 passed
+```
+
+frente a:
+
+```text
+182 passed
+```
+
+en v3.6.
+
+El análisis estático finaliza con:
+
+```text
+All checks passed!
+```
+
+También se validaron:
+
+```bash
+python3 -m py_compile organizador.py core/*.py ui/*.py
+git diff --check
+```
+
+## Commit principal
+
+La implementación funcional quedó registrada en:
+
+```text
+6902aa3  v3.7: normaliza eventos de seguridad
+```
+
+## Resultado
+
+La arquitectura específica del análisis defensivo queda:
+
+```text
+                 FILEORGANIZER v3.7
+                          │
+                          ▼
+                        LOG
+                          │
+                          ▼
+                 analizador_logs.py
+                          │
+             ┌────────────┴────────────┐
+             ▼                         ▼
+       reglas_logs.py              eventos.py
+             │                         │
+       qué detectar             cómo representar
+             │                         │
+             └────────────┬────────────┘
+                          ▼
+                   evento normalizado
+                          │
+                          ▼
+              correlación / interfaz
+```
+
+v3.7 consolida la separación entre detección, análisis y representación de eventos, acercando FileOrganizer a una arquitectura más parecida a la utilizada por sistemas defensivos de monitorización y correlación.
