@@ -45,6 +45,7 @@ FileOrganizer/
 │   ├── mensajes.py
 │   ├── movimientos.py
 │   ├── rutas.py
+│   ├── reglas_logs.py
 │   ├── seguridad.py
 │   └── verificador.py
 ├── ui/
@@ -61,6 +62,7 @@ FileOrganizer/
 │   ├── Resumen_v3.3_Monitor_Integridad.md
 │   ├── Resumen_v3.4_Auditoria_Seguridad.md
 │   └── Resumen_v3.5_Refactor_Arquitectura.md
+│   └── Resumen_v3.6_Motor_Reglas_Logs.md
 ├── reports/
 │   └── .gitkeep
 ├── test/
@@ -68,6 +70,7 @@ FileOrganizer/
 │   ├── test_analizador_logs_funciones.py
 │   ├── test_analizador_logs_ip.py
 │   ├── test_analizador_logs_patrones.py
+│   ├── test_analizador_logs_reglas.py
 │   ├── test_analizador_logs_robustez.py
 │   ├── test_analizador_logs_tiempo.py
 │   ├── test_auditoria.py
@@ -88,6 +91,7 @@ FileOrganizer/
 │   ├── test_organizador_logs.py
 │   ├── test_organizador_seleccion.py
 │   ├── test_permisos_robustez.py
+│   ├── test_reglas_logs.py
 │   ├── test_seguridad.py
 │   ├── test_verificador.py
 │   └── test_verificador_robustez.py
@@ -131,23 +135,30 @@ FileOrganizer/
 - json
 
 ---
-
 ## Estado del proyecto
 
-En desarrollo.
+En desarrollo activo.
+
 # 📂 FileOrganizer
+
 ```text
 ========================================
-        FILE ORGANIZER v2.5
+        FILE ORGANIZER v3.6
 ========================================
 1) Organizar carpeta
 2) Modo simulación
 3) Deshacer última organización
-4) Ver estadísticas
-5) Salir
+4) Ver estadisticas
+5) Buscar archivos duplicados por nombre
+6) Buscar archivos duplicados por contenido (SHA-256)
+7) Ver historial de organizaciones
+8) Analizar archivo de logs
+9) Crear baseline de integridad
+10) Verificar integridad
+11) Ejecutar auditoría de seguridad
+12) Salir
 ```
-FileOrganizer es una aplicación desarrollada en Python para organizar archivos automáticamente según su extensión.
-
+FileOrganizer es una aplicación desarrollada en Python para organizar y analizar archivos, incorporando progresivamente mecanismos de seguridad defensiva, integridad, análisis de logs y auditoría.
 ## Funciones actuales
 
 - ✅ Análisis de carpetas
@@ -2895,3 +2906,332 @@ FileOrganizer pasa de depender de un archivo principal de gran tamaño a utiliza
 ```
 
 El resultado es una base más adecuada para continuar desarrollando funcionalidades de ciberseguridad, ampliar los tests y evolucionar el proyecto sin volver a concentrar responsabilidades en `organizador.py`.
+````markdown
+---
+
+# v3.6 — Motor de reglas para análisis defensivo de logs
+
+La versión **v3.6** evoluciona el analizador defensivo de logs de FileOrganizer mediante la introducción de un **motor declarativo de reglas de detección**.
+
+El objetivo principal es separar la definición de amenazas de la lógica encargada de analizar los registros.
+
+Antes de v3.6, los patrones de detección estaban definidos directamente dentro de:
+
+```text
+core/analizador_logs.py
+```
+
+mediante estructuras específicas para patrones y severidades.
+
+En v3.6 se introduce:
+
+```text
+core/reglas_logs.py
+```
+
+como módulo dedicado a definir y evaluar reglas de seguridad.
+
+## Arquitectura del motor
+
+El nuevo flujo queda:
+
+```text
+línea de log
+     │
+     ▼
+analizar_linea()
+     │
+     ▼
+evaluar_linea_con_reglas()
+     │
+     ▼
+REGLAS_DETECCION
+     │
+     ▼
+evento de seguridad
+```
+
+Cada regla utiliza una estructura declarativa:
+
+```text
+id
+tipo
+severidad
+descripcion
+patrones
+```
+
+Esto permite identificar de forma independiente la regla concreta que generó un evento.
+
+## Reglas disponibles
+
+v3.6 incorpora cuatro reglas principales:
+
+```text
+WEB_SQL_001
+└── SQL_INJECTION
+
+AUTH_FAIL_001
+└── FUERZA_BRUTA
+
+WEB_PATH_001
+└── PATH_TRAVERSAL
+
+WEB_CMD_001
+└── COMMAND_INJECTION
+```
+
+### SQL Injection
+
+La detección existente de SQL Injection fue migrada al nuevo sistema de reglas sin modificar su comportamiento.
+
+Se mantienen patrones relacionados con:
+
+```text
+UNION SELECT
+OR 1=1
+AND 1=1
+SLEEP()
+BENCHMARK()
+DROP TABLE
+information_schema
+```
+
+### Fallos de autenticación
+
+La detección de eventos relacionados con fuerza bruta también fue migrada al motor declarativo.
+
+Se mantienen patrones como:
+
+```text
+Failed password
+Failed login
+Authentication failure
+Invalid user
+Maximum authentication attempts
+Too many authentication failures
+```
+
+La correlación temporal ya existente continúa funcionando sobre estos eventos.
+
+## Path Traversal
+
+v3.6 incorpora una nueva detección:
+
+```text
+WEB_PATH_001
+```
+
+con:
+
+```text
+tipo........ PATH_TRAVERSAL
+severidad... ALTA
+```
+
+La regla reconoce variantes como:
+
+```text
+../
+%2e%2e%2f
+%2e%2e/
+..%2f
+```
+
+Esto permite identificar intentos básicos de acceso a rutas fuera del directorio esperado, incluyendo algunas variantes codificadas para URL.
+
+## Command Injection
+
+También se incorpora:
+
+```text
+WEB_CMD_001
+```
+
+con:
+
+```text
+tipo........ COMMAND_INJECTION
+severidad... ALTA
+```
+
+En v3.6 se caracterizan inicialmente patrones como:
+
+```text
+;whoami
+&&id
+```
+
+La finalidad es demostrar que el motor puede incorporar nuevas familias de amenazas sin modificar la lógica central del analizador.
+
+## Eventos enriquecidos
+
+Los eventos de seguridad dejan de incluir únicamente:
+
+```text
+linea
+ip
+tipo
+severidad
+contenido
+```
+
+y pasan a incorporar también:
+
+```text
+regla
+descripcion
+```
+
+Por ejemplo:
+
+```text
+Regla........ WEB_PATH_001
+Tipo......... PATH_TRAVERSAL
+Severidad.... ALTA
+Descripción.. Posible intento de Path Traversal
+```
+
+La interfaz `ui/logs.py` fue actualizada para mostrar estos metadatos.
+
+## Eliminación de lógica legacy
+
+Después de conectar `analizador_linea()` con el nuevo motor se comprobaron las referencias a:
+
+```text
+PATRONES_SEGURIDAD
+SEVERIDADES
+```
+
+Ambas estructuras quedaron sin uso y fueron eliminadas de `core/analizador_logs.py`.
+
+Esto reduce la duplicación y centraliza las reglas de detección en:
+
+```text
+core/reglas_logs.py
+```
+
+## Extensibilidad
+
+Una de las principales ventajas de v3.6 es que una nueva amenaza puede añadirse mediante una nueva regla sin reescribir `analizar_linea()`.
+
+El diseño pasa de:
+
+```text
+analizador
+├── patrones
+├── severidades
+└── lógica
+```
+
+a:
+
+```text
+reglas_logs.py
+├── definiciones de amenazas
+└── evaluación de reglas
+
+analizador_logs.py
+└── análisis y generación de eventos
+```
+
+## Desarrollo mediante TDD
+
+El motor fue construido incrementalmente mediante ciclos RED/GREEN.
+
+Se probaron:
+
+- estructura obligatoria de las reglas;
+- reglas base;
+- coincidencia positiva;
+- ausencia de coincidencia;
+- evaluación de todas las reglas;
+- varias reglas sobre una misma línea;
+- integración con `analizar_linea()`;
+- enriquecimiento de eventos;
+- Path Traversal;
+- variantes codificadas de Path Traversal;
+- Command Injection;
+- integración real de las nuevas detecciones.
+
+Se añadieron:
+
+```text
+test/test_reglas_logs.py
+test/test_analizador_logs_reglas.py
+```
+
+y se amplió:
+
+```text
+test/test_organizador_logs.py
+```
+
+## Validación técnica
+
+La batería completa de FileOrganizer alcanza:
+
+```text
+182 passed
+```
+
+frente a los:
+
+```text
+165 passed
+```
+
+con los que se cerró v3.5.
+
+El análisis estático finaliza con:
+
+```text
+All checks passed!
+```
+
+También se validan:
+
+```bash
+python3 -m py_compile core/*.py ui/*.py organizador.py
+git diff --check
+```
+
+## Commit principal
+
+La implementación funcional de v3.6 quedó registrada en:
+
+```text
+c33e65d  v3.6: añade motor de reglas para analisis defensivo de logs
+```
+
+## Resultado
+
+La arquitectura resultante puede resumirse como:
+
+```text
+                FILEORGANIZER v3.6
+                         │
+                         ▼
+                       LOG
+                         │
+                         ▼
+               analizador_logs.py
+                         │
+                         ▼
+                  reglas_logs.py
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+     SQL Injection   Path Traversal   Command Injection
+          │              │              │
+          └──────────────┼──────────────┘
+                         ▼
+                 evento enriquecido
+                         │
+                regla + descripción
+                         │
+                         ▼
+                     ui/logs.py
+```
+
+v3.6 convierte el analizador de logs en una base más próxima conceptualmente a un pequeño sistema de detección defensiva, manteniendo el proyecto comprensible y extensible.
