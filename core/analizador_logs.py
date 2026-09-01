@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+from core.eventos import crear_evento_seguridad
 from core.reglas_logs import (
     REGLAS_DETECCION,
     evaluar_linea_con_reglas,
@@ -39,17 +40,18 @@ def analizar_linea(linea, numero_linea):
         REGLAS_DETECCION,
     )
 
+    fecha_texto = extraer_fecha_log(linea)
+    fecha = convertir_fecha_log(fecha_texto)
+
     for regla in reglas_coincidentes:
         eventos.append(
-            {
-                "linea": numero_linea,
-                "ip": extraer_ip(linea),
-                "tipo": regla["tipo"],
-                "severidad": regla["severidad"],
-                "regla": regla["id"],
-                "descripcion": regla["descripcion"],
-                "contenido": linea.rstrip("\n"),
-            }
+            crear_evento_seguridad(
+                linea=numero_linea,
+                ip=extraer_ip(linea),
+                regla=regla,
+                contenido=linea.rstrip("\n"),
+                fecha=fecha,
+            )
         )
 
     return eventos
@@ -231,9 +233,12 @@ def detectar_fuerza_bruta_temporal(
             if evento["tipo"] != "FUERZA_BRUTA":
                 continue
 
-            fecha_texto = extraer_fecha_log(evento["contenido"])
+            fecha = evento.get("fecha")
 
-            fecha = convertir_fecha_log(fecha_texto)
+            if fecha is None:
+                fecha_texto = extraer_fecha_log(evento["contenido"])
+
+                fecha = convertir_fecha_log(fecha_texto)
 
             if fecha is None:
                 continue

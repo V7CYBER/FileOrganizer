@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from core.analizador_logs import detectar_fuerza_bruta_temporal
 
 
@@ -13,8 +15,7 @@ def crear_evento(ip, fecha, linea):
         "tipo": "FUERZA_BRUTA",
         "severidad": "MEDIA",
         "contenido": (
-            f'{ip} - - [{fecha}] '
-            '"POST /login HTTP/1.1" 401 Failed password'
+            f"{ip} - - [{fecha}] " '"POST /login HTTP/1.1" 401 Failed password'
         ),
     }
 
@@ -145,3 +146,66 @@ def test_no_alerta_por_debajo_del_umbral():
 
     # ASSERT
     assert alertas == []
+
+
+def test_correlacion_temporal_utiliza_fecha_normalizada():
+    # ARRANGE
+    eventos = [
+        {
+            "linea": 1,
+            "ip": "192.168.1.20",
+            "tipo": "FUERZA_BRUTA",
+            "severidad": "MEDIA",
+            "contenido": "sin fecha en contenido",
+            "fecha": datetime(  # noqa: DTZ001
+                2026,
+                8,
+                16,
+                9,
+                0,
+                0,
+            ),
+        },
+        {
+            "linea": 2,
+            "ip": "192.168.1.20",
+            "tipo": "FUERZA_BRUTA",
+            "severidad": "MEDIA",
+            "contenido": "sin fecha en contenido",
+            "fecha": datetime(  # noqa: DTZ001
+                2026,
+                8,
+                16,
+                9,
+                0,
+                10,
+            ),
+        },
+        {
+            "linea": 3,
+            "ip": "192.168.1.20",
+            "tipo": "FUERZA_BRUTA",
+            "severidad": "MEDIA",
+            "contenido": "sin fecha en contenido",
+            "fecha": datetime(  # noqa: DTZ001
+                2026,
+                8,
+                16,
+                9,
+                0,
+                20,
+            ),
+        },
+    ]
+
+    # ACT
+    alertas = detectar_fuerza_bruta_temporal(
+        eventos,
+        umbral=3,
+        ventana_segundos=60,
+    )
+
+    # ASSERT
+    assert len(alertas) == 1
+    assert alertas[0]["ip"] == "192.168.1.20"
+    assert alertas[0]["intentos"] == 3
