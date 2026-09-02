@@ -26,6 +26,7 @@ Organizar automáticamente los archivos de una carpeta según su extensión, uti
 ```text
 FileOrganizer/
 ├── core/
+│   ├── alertas.py
 │   ├── analizador.py
 │   ├── analizador_logs.py
 │   ├── auditoria.py
@@ -67,6 +68,8 @@ FileOrganizer/
 ├── reports/
 │   └── .gitkeep
 ├── test/
+│   ├── test_alertas.py
+│   ├── test_analizador_logs_alertas.py
 │   ├── test_analizador_logs_eventos.py
 │   ├── test_analizador_logs_correlacion.py
 │   ├── test_analizador_logs_funciones.py
@@ -146,7 +149,7 @@ En desarrollo activo.
 
 ```text
 ========================================
-        FILE ORGANIZER v3.6
+        FILE ORGANIZER v3.8
 ========================================
 1) Organizar carpeta
 2) Modo simulación
@@ -3521,3 +3524,192 @@ La arquitectura específica del análisis defensivo queda:
 ```
 
 v3.7 consolida la separación entre detección, análisis y representación de eventos, acercando FileOrganizer a una arquitectura más parecida a la utilizada por sistemas defensivos de monitorización y correlación.
+---
+
+# v3.8 — Normalización de alertas de seguridad
+
+La versión **v3.8** cierra la fase defensiva principal de FileOrganizer mediante la normalización de las alertas generadas por la correlación temporal.
+
+Después de v3.7, el sistema ya disponía de un motor declarativo de reglas y de eventos de seguridad normalizados. Sin embargo, la correlación temporal todavía construía directamente los diccionarios de alerta.
+
+v3.8 separa esta responsabilidad mediante el nuevo módulo:
+
+```text
+core/alertas.py
+Objetivo
+
+Centralizar la creación de alertas de seguridad y establecer un contrato común para su representación.
+
+El flujo evoluciona de:
+
+correlación
+    │
+    ▼
+diccionario construido directamente
+
+a:
+
+correlación
+    │
+    ▼
+crear_alerta_seguridad()
+    │
+    ▼
+alerta normalizada
+Nuevo módulo core/alertas.py
+
+Se incorpora la función:
+
+crear_alerta_seguridad()
+
+La alerta normalizada contiene:
+
+ip
+tipo
+severidad
+intentos
+ventana_segundos
+lineas
+fecha
+
+Las alertas actuales de correlación utilizan:
+
+tipo = POSIBLE_FUERZA_BRUTA
+severidad = ALTA
+Integración con la correlación temporal
+
+detectar_fuerza_bruta_temporal() deja de construir manualmente los diccionarios de alerta y delega esa responsabilidad en:
+
+crear_alerta_seguridad()
+
+La correlación continúa determinando:
+
+IP implicada;
+número de intentos;
+ventana temporal;
+líneas relacionadas.
+
+El constructor se encarga de representar esos datos mediante el contrato normalizado.
+
+Validación del contrato
+
+El número de intentos debe ser un entero válido y mayor que cero.
+
+Un tipo incorrecto produce:
+
+TypeError
+
+Un valor inferior a 1 produce:
+
+ValueError
+
+Esto mantiene la misma filosofía de contrato explícito utilizada para los eventos normalizados de v3.7.
+
+Desarrollo mediante TDD
+
+Se añadieron:
+
+test/test_alertas.py
+test/test_analizador_logs_alertas.py
+
+Los ciclos RED/GREEN comprobaron:
+
+creación de la estructura normalizada;
+incorporación de fecha opcional;
+integración del constructor con la correlación temporal;
+rechazo de valores inválidos para intentos;
+rechazo de tipos inválidos para intentos;
+conservación del comportamiento anterior de la correlación.
+Validación técnica
+
+La batería completa alcanza:
+
+197 passed
+
+frente a:
+
+192 passed
+
+en v3.7.
+
+El análisis estático mediante Ruff finaliza con:
+
+All checks passed!
+
+También se validaron:
+
+python3 -m py_compile organizador.py core/*.py ui/*.py
+git diff --check
+Commit funcional
+
+La implementación funcional de v3.8 quedó registrada en:
+
+e094932  v3.8: normaliza alertas de seguridad
+Arquitectura defensiva final
+
+La evolución realizada entre v3.6 y v3.8 puede resumirse como:
+
+                  FILEORGANIZER v3.8
+                           │
+                           ▼
+                          LOG
+                           │
+                           ▼
+                    reglas_logs.py
+                           │
+                      qué detectar
+                           │
+                           ▼
+                      eventos.py
+                           │
+                 evento normalizado
+                           │
+                           ▼
+                  analizador_logs.py
+                           │
+                      correlación
+                           │
+                           ▼
+                      alertas.py
+                           │
+                           ▼
+                  alerta normalizada
+
+La separación de responsabilidades queda conceptualmente definida así:
+
+reglas_logs.py
+└── qué detectar
+
+eventos.py
+└── cómo representar una detección
+
+analizador_logs.py
+└── analizar y correlacionar
+
+alertas.py
+└── cómo representar una correlación
+Resultado
+
+v3.8 cierra deliberadamente esta fase de evolución Blue Team.
+
+FileOrganizer queda como proyecto defensivo de portfolio con capacidades de:
+
+organización y clasificación de archivos;
+configuración externa;
+simulación y deshacer;
+estadísticas;
+detección de duplicados;
+hashes SHA-256;
+verificación mediante magic numbers;
+cuarentena;
+monitor de integridad;
+auditoría de seguridad;
+análisis defensivo de logs;
+motor declarativo de reglas;
+eventos de seguridad normalizados;
+correlación temporal;
+alertas de seguridad normalizadas;
+testing automatizado;
+control de calidad mediante Ruff.
+
+Con v3.8 queda completada la evolución defensiva planificada para esta etapa del proyecto.
