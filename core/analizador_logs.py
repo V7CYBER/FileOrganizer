@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+from core.alertas import crear_alerta_seguridad
 from core.eventos import crear_evento_seguridad
 from core.reglas_logs import (
     REGLAS_DETECCION,
@@ -261,14 +262,12 @@ def detectar_fuerza_bruta_temporal(
             if diferencia <= ventana_segundos:
 
                 alertas.append(
-                    {
-                        "ip": ip,
-                        "tipo": "POSIBLE_FUERZA_BRUTA",
-                        "severidad": "ALTA",
-                        "intentos": umbral,
-                        "ventana_segundos": diferencia,
-                        "lineas": [intento["linea"] for intento in ventana],
-                    }
+                    crear_alerta_seguridad(
+                        ip=ip,
+                        intentos=umbral,
+                        ventana_segundos=diferencia,
+                        lineas=[intento["linea"] for intento in ventana],
+                    )
                 )
 
                 break
